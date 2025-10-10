@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💖 متجر ملفات أحبك - نظام الدفع</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>🕊️ بوت تربية الحمام - Telegram Stars</title>
     <style>
         * {
             margin: 0;
@@ -17,792 +16,313 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            position: relative;
+            flex-direction: column;
+            color: #fff;
             overflow-x: hidden;
         }
 
-        .hearts-bg {
+        .stars {
             position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .logo {
+            font-size: 120px;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        h1 {
+            font-size: 3em;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease 0.4s backwards;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 20px 50px;
+            font-size: 1.3em;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite, fadeInUp 1s ease 0.6s backwards;
+            font-weight: bold;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4); }
+            50% { box-shadow: 0 10px 50px rgba(245, 87, 108, 0.7); }
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 1s ease backwards;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.8s; }
+        .feature-card:nth-child(2) { animation-delay: 1s; }
+        .feature-card:nth-child(3) { animation-delay: 1.2s; }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .feature-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .feature-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .price-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            margin: 60px 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            animation: fadeInUp 1s ease 1.4s backwards;
+        }
+
+        .price {
+            font-size: 4em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            margin: 20px 0;
+        }
+
+        .price-icon {
+            font-size: 3em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: auto;
+            opacity: 0.8;
+            animation: fadeInUp 1s ease 1.6s backwards;
+        }
+
+        .pigeons-flying {
+            position: fixed;
+            font-size: 2em;
+            animation: fly 15s linear infinite;
             pointer-events: none;
             z-index: 0;
         }
 
-        .heart {
-            position: absolute;
-            font-size: 24px;
-            animation: float 15s infinite;
-            opacity: 0.3;
-        }
-
-        @keyframes float {
+        @keyframes fly {
             0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.3;
-            }
-            90% {
-                opacity: 0.3;
+                left: -100px;
+                top: 20%;
             }
             100% {
-                transform: translateY(-100px) rotate(360deg);
-                opacity: 0;
+                left: calc(100% + 100px);
+                top: 40%;
             }
         }
 
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 30px;
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            animation: slideIn 0.6s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            
+            .subtitle {
+                font-size: 1.2em;
             }
-        }
-
-        .logo {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
+            
+            .logo {
+                font-size: 80px;
             }
-            50% {
-                transform: scale(1.1);
+            
+            .cta-button {
+                padding: 15px 35px;
+                font-size: 1.1em;
             }
-        }
-
-        h1 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 32px;
-        }
-
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-
-        .product-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 30px;
-            margin: 30px 0;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: rotate 10s linear infinite;
-        }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
+            
+            .price {
+                font-size: 2.5em;
             }
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .product-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .product-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-        }
-
-        .product-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .product-description {
-            opacity: 0.9;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .price-tag {
-            background: rgba(255, 255, 255, 0.2);
-            display: inline-block;
-            padding: 10px 30px;
-            border-radius: 50px;
-            font-size: 24px;
-            font-weight: bold;
-            backdrop-filter: blur(10px);
-        }
-
-        .features {
-            text-align: right;
-            margin: 30px 0;
-        }
-
-        .feature-item {
-            background: #f8f9ff;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.3s ease;
-        }
-
-        .feature-item:hover {
-            transform: translateX(-5px);
-        }
-
-        .feature-icon {
-            font-size: 28px;
-            min-width: 40px;
-        }
-
-        .feature-text {
-            color: #333;
-            font-size: 14px;
-        }
-
-        /* Payment Section */
-        .payment-section {
-            background: #f8f9ff;
-            border-radius: 20px;
-            padding: 25px;
-            margin: 20px 0;
-            text-align: right;
-        }
-
-        .payment-title {
-            color: #667eea;
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .payment-method {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            padding: 15px;
-            margin: 10px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .payment-method:hover {
-            border-color: #667eea;
-            transform: translateX(-3px);
-        }
-
-        .payment-method.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        }
-
-        .payment-method-icon {
-            font-size: 32px;
-            min-width: 40px;
-        }
-
-        .payment-method-info {
-            flex: 1;
-            text-align: right;
-        }
-
-        .payment-method-name {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 3px;
-        }
-
-        .payment-method-desc {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .payment-method-radio {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #667eea;
-            border-radius: 50%;
-            position: relative;
-        }
-
-        .payment-method.selected .payment-method-radio::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 10px;
-            height: 10px;
-            background: #667eea;
-            border-radius: 50%;
-        }
-
-        .buy-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 18px 50px;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .buy-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        .buy-button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .buy-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .modal.show {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 25px;
-            padding: 35px;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-icon {
-            font-size: 70px;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            color: #333;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .modal-text {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .modal-button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-button.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .modal-button.secondary {
-            background: #f0f0f0;
-            color: #666;
-        }
-
-        .modal-button:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            display: none;
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        .spinner.show {
-            display: block;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 15px 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-            z-index: 2000;
-            transition: bottom 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 90%;
-        }
-
-        .toast.show {
-            bottom: 30px;
-        }
-
-        .toast-icon {
-            font-size: 24px;
-        }
-
-        .toast-message {
-            color: #333;
-            font-weight: 500;
-        }
-
-        .toast.success {
-            border-right: 4px solid #28a745;
-        }
-
-        .toast.error {
-            border-right: 4px solid #dc3545;
-        }
-
-        .toast.info {
-            border-right: 4px solid #17a2b8;
-        }
-
-        .footer {
-            margin-top: 30px;
-            color: #999;
-            font-size: 12px;
-        }
-
-        .order-summary {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-            border: 2px dashed #667eea;
-        }
-
-        .order-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            color: #333;
-        }
-
-        .order-row.total {
-            border-top: 2px solid #e0e0e0;
-            margin-top: 10px;
-            padding-top: 15px;
-            font-weight: bold;
-            font-size: 18px;
-            color: #667eea;
         }
     </style>
 </head>
 <body>
-    <div class="hearts-bg" id="heartsContainer"></div>
-    
-    <div class="container">
-        <div class="logo">💖</div>
-        <h1>متجر ملفات أحبك</h1>
-        <p class="subtitle">أجمل كلمات الحب في ملف واحد</p>
+    <div class="stars" id="stars"></div>
+    <div class="pigeons-flying">🕊️</div>
 
-        <div class="product-card">
-            <div class="product-content">
-                <div class="product-icon">📄✨</div>
-                <div class="product-name">ملف كلمة أحبك</div>
-                <div class="product-description">
-                    احصل على ملف نصي فريد يحتوي على كلمة "أحبك" بتصاميم وخطوط جميلة بلغات مختلفة
-                </div>
-                <div class="price-tag">
-                    <span class="sparkle">⭐</span> 1 نجمة فقط <span class="sparkle">⭐</span>
-                </div>
-            </div>
-        </div>
+    <div class="container">
+        <header>
+            <div class="logo">🕊️</div>
+            <h1>بوت تربية الحمام</h1>
+            <p class="subtitle">اشترِ وربِّ حمامك الخاص في تلغرام!</p>
+            <a href="https://t.me/YOUR_BOT_USERNAME" class="cta-button">
+                ابدأ الآن على تلغرام 🚀
+            </a>
+        </header>
 
         <div class="features">
-            <div class="feature-item">
-                <div class="feature-icon">🎨</div>
-                <div class="feature-text">تصاميم فنية جميلة ومميزة</div>
+            <div class="feature-card">
+                <div class="feature-icon">⭐</div>
+                <h3>ادفع بالنجوم</h3>
+                <p>اشترِ حمامة واحدة مقابل 1000 نجمة تلغرام فقط</p>
             </div>
-            <div class="feature-item">
-                <div class="feature-icon">🌍</div>
-                <div class="feature-text">كلمة أحبك بلغات مختلفة</div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>اجمع حمامك</h3>
+                <p>قم ببناء مجموعتك الخاصة من الحمام الجميل</p>
             </div>
-            <div class="feature-item">
-                <div class="feature-icon">⚡</div>
-                <div class="feature-text">تسليم فوري بعد الدفع</div>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">💯</div>
-                <div class="feature-text">جودة عالية وملف جاهز للاستخدام</div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>تتبع إحصائياتك</h3>
+                <p>راقب عدد الحمام الذي تمتلكه في أي وقت</p>
             </div>
         </div>
 
-        <!-- Payment Section -->
-        <div class="payment-section">
-            <div class="payment-title">⭐ الدفع بنجوم تيليجرام</div>
-            
-            <div class="payment-method selected">
-                <div class="payment-method-icon">⭐</div>
-                <div class="payment-method-info">
-                    <div class="payment-method-name">Telegram Stars</div>
-                    <div class="payment-method-desc">طريقة آمنة وسريعة ومضمونة 100%</div>
-                </div>
-                <div class="payment-method-radio"></div>
+        <div class="price-section">
+            <h2>السعر البسيط</h2>
+            <div class="price">
+                <span class="price-icon">⭐</span> 1000
             </div>
-
-            <div class="order-summary">
-                <div class="order-row">
-                    <span>المنتج:</span>
-                    <span>ملف كلمة أحبك</span>
-                </div>
-                <div class="order-row">
-                    <span>الكمية:</span>
-                    <span>1</span>
-                </div>
-                <div class="order-row">
-                    <span>السعر:</span>
-                    <span>1 ⭐</span>
-                </div>
-                <div class="order-row total">
-                    <span>المجموع:</span>
-                    <span>1 ⭐</span>
-                </div>
-            </div>
-
-            <div class="feature-item" style="margin-top: 15px;">
-                <div class="feature-icon">🔒</div>
-                <div class="feature-text">الدفع آمن ومحمي بالكامل من خلال تيليجرام</div>
-            </div>
+            <p style="font-size: 1.3em;">نجمة واحدة = حمامة واحدة</p>
         </div>
 
-        <button class="buy-button" id="buyBtn" onclick="initiatePayment()">
-            ⭐ ادفع بنجوم تيليجرام - 1 نجمة ⭐
-        </button>
-
-        <div class="spinner" id="spinner"></div>
-
-        <div class="footer">
-            شكراً لاستخدامك بوتنا 💝<br>
-            جميع الحقوق محفوظة © 2025
-        </div>
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div class="modal" id="confirmModal">
-        <div class="modal-content">
-            <div class="modal-icon">🛍️</div>
-            <div class="modal-title">تأكيد الطلب</div>
-            <div class="modal-text">
-                هل أنت متأكد من شراء "ملف كلمة أحبك" بـ 1 نجمة؟
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-button secondary" onclick="closeModal()">إلغاء</button>
-                <button class="modal-button primary" onclick="confirmPayment()">تأكيد</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Success Modal -->
-    <div class="modal" id="successModal">
-        <div class="modal-content">
-            <div class="modal-icon">✅</div>
-            <div class="modal-title">تم بنجاح!</div>
-            <div class="modal-text">
-                تم إنشاء طلبك بنجاح. سيصلك رابط الدفع في المحادثة خلال ثوانٍ.
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-button primary" onclick="closeModal(); resetForm();">حسناً</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <div class="toast-icon" id="toastIcon"></div>
-        <div class="toast-message" id="toastMessage"></div>
+        <footer>
+            <p>© 2025 Pigeon Bot - جميع الحقوق محفوظة</p>
+            <p style="margin-top: 10px;">مدعوم بـ Telegram Stars ⭐</p>
+        </footer>
     </div>
 
     <script>
-        const tg = window.Telegram?.WebApp;
-        let isProcessing = false;
-
-        // التحقق من توفر Telegram WebApp
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            
-            // إعداد MainButton
-            tg.MainButton.setText('⭐ ادفع 1 نجمة');
-            tg.MainButton.color = '#667eea';
-            tg.MainButton.textColor = '#ffffff';
-            
-            // عند الضغط على MainButton
-            tg.MainButton.onClick(() => {
-                if (!isProcessing) {
-                    showModal('confirmModal');
-                }
-            });
-            
-            // إظهار MainButton
-            tg.MainButton.show();
-            
-            // زر الرجوع
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => tg.close());
+        // Create stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
         }
 
-        // إنشاء قلوب متحركة
-        function createHeart() {
-            const heart = document.createElement('div');
-            heart.className = 'heart';
-            heart.innerHTML = '💖';
-            heart.style.left = Math.random() * 100 + '%';
-            heart.style.animationDuration = (Math.random() * 10 + 10) + 's';
-            heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
-            heart.style.animationDelay = Math.random() * 5 + 's';
-            
-            document.getElementById('heartsContainer').appendChild(heart);
-            
-            setTimeout(() => heart.remove(), 20000);
+        // Add multiple flying pigeons
+        for (let i = 0; i < 3; i++) {
+            const pigeon = document.createElement('div');
+            pigeon.className = 'pigeons-flying';
+            pigeon.textContent = '🕊️';
+            pigeon.style.animationDelay = (i * 5) + 's';
+            pigeon.style.top = (20 + i * 20) + '%';
+            document.body.appendChild(pigeon);
         }
-
-        setInterval(createHeart, 500);
-        for (let i = 0; i < 15; i++) createHeart();
-
-        // بدء عملية الدفع
-        function initiatePayment() {
-            if (isProcessing) return;
-            
-            // إذا كان MainButton مفعّل، استخدمه
-            if (tg && tg.MainButton) {
-                tg.MainButton.show();
-                tg.MainButton.enable();
-            } else {
-                // إذا لم يكن متاح، أظهر Modal مباشرة
-                showModal('confirmModal');
-            }
-        }
-
-        // تأكيد الدفع
-        function confirmPayment() {
-            if (isProcessing) return;
-            
-            isProcessing = true;
-            closeModal();
-            
-            const buyBtn = document.getElementById('buyBtn');
-            const spinner = document.getElementById('spinner');
-            
-            buyBtn.disabled = true;
-            spinner.classList.add('show');
-            
-            // تعطيل MainButton
-            if (tg && tg.MainButton) {
-                tg.MainButton.showProgress();
-                tg.MainButton.disable();
-            }
-            
-            showToast('جاري إنشاء الفاتورة...', 'info', '⏳');
-
-            // إرسال البيانات للبوت
-            const orderData = {
-                action: 'create_invoice',
-                product_id: 'love_file_001',
-                product_name: 'ملف كلمة أحبك',
-                amount: 1,
-                currency: 'XTR',
-                description: 'ملف نصي فريد يحتوي على كلمة أحبك بتصاميم جميلة',
-                timestamp: Date.now(),
-                user_id: tg?.initDataUnsafe?.user?.id || null,
-                user_name: tg?.initDataUnsafe?.user?.first_name || 'مستخدم'
-            };
-
-            if (tg) {
-                // إرسال البيانات مباشرة
-                tg.sendData(JSON.stringify(orderData));
-                
-                // إظهار رسالة النجاح
-                setTimeout(() => {
-                    spinner.classList.remove('show');
-                    showModal('successModal');
-                    showToast('تم الإرسال! انتظر رابط الدفع 📱', 'success', '✅');
-                    
-                    if (tg.MainButton) {
-                        tg.MainButton.hideProgress();
-                    }
-                }, 1000);
-            } else {
-                // في حالة عدم توفر Telegram
-                setTimeout(() => {
-                    spinner.classList.remove('show');
-                    showToast('⚠️ يجب فتح الصفحة من تيليجرام', 'error', '❌');
-                    buyBtn.disabled = false;
-                    isProcessing = false;
-                }, 1000);
-            }
-        }
-
-        // عرض Modal
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.add('show');
-        }
-
-        // إغلاق Modal
-        function closeModal() {
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.classList.remove('show');
-            });
-        }
-
-        // إعادة تعيين النموذج
-        function resetForm() {
-            const buyBtn = document.getElementById('buyBtn');
-            buyBtn.disabled = false;
-            isProcessing = false;
-        }
-
-        // عرض Toast
-        function showToast(message, type = 'info', icon = 'ℹ️') {
-            const toast = document.getElementById('toast');
-            const toastIcon = document.getElementById('toastIcon');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastIcon.textContent = icon;
-            toastMessage.textContent = message;
-            
-            toast.className = 'toast ' + type;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        // إغلاق Modal عند الضغط خارجها
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                closeModal();
-            }
-        }
-
-        // منع الإرسال المتكرر
-        let lastClickTime = 0;
-        document.getElementById('buyBtn').addEventListener('click', function(e) {
-            const now = Date.now();
-            if (now - lastClickTime < 2000) {
-                e.preventDefault();
-                showToast('الرجاء الانتظار...', 'info', '⏳');
-                return false;
-            }
-            lastClickTime = now;
-        });
     </script>
 </body>
 </html>
