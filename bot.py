@@ -14,7 +14,7 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 class Database:
     def __init__(self):
-        self.conn = psycopg2.connect(DATABASE_URL)
+        self.conn = psycopg.connect(DATABASE_URL)
         self.create_tables()
     
     def create_tables(self):
@@ -32,9 +32,17 @@ class Database:
     
     def get_user(self, user_id):
         """Get user data"""
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+        with self.conn.cursor() as cur:
             cur.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
-            return cur.fetchone()
+            row = cur.fetchone()
+            if row:
+                return {
+                    'user_id': row[0],
+                    'username': row[1],
+                    'pigeon_count': row[2],
+                    'created_at': row[3]
+                }
+            return None
     
     def create_user(self, user_id, username):
         """Create new user"""
