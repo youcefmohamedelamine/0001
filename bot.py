@@ -52,8 +52,7 @@ def buy(message):
 💰 معلومات الدفع:
 
 السعر: {PRICE} TON
-عنوان المحفظة: 
-`{WALLET_ADDRESS}`
+عنوان المحفظة: {WALLET_ADDRESS}
 
 📝 تعليمات الدفع:
 1. اضغط على زر "ادفع {PRICE} TON" أدناه
@@ -63,7 +62,7 @@ def buy(message):
 ⚠️ تأكد من إرسال المبلغ الصحيح وإضافة المعرف: payment_{user_id}
     """
     
-    bot.send_message(message.chat.id, payment_text, parse_mode='Markdown', reply_markup=markup)
+    bot.send_message(message.chat.id, payment_text, reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_'))
 def check_payment(call):
