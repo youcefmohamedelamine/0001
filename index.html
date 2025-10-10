@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل إعداد بوت تيليجرام</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-right: 5px solid #667eea;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .step:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .step h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+        }
+        
+        .step p, .step li {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+        
+        .step ul {
+            margin-right: 20px;
+            margin-top: 10px;
+        }
+        
+        .step li {
+            margin-bottom: 8px;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .warning h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-right: 5px solid #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .success h4 {
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .icon {
+            font-size: 1.5em;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 دليل إعداد بوت تيليجرام</h1>
+            <p>بوت بيع الملفات مقابل نجوم تيليجرام ⭐</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> المتطلبات الأساسية</h2>
+                
+                <div class="step">
+                    <h3>1️⃣ تثبيت Python</h3>
+                    <p>تأكد من تثبيت Python 3.8 أو أحدث على جهازك</p>
+                    <div class="code-block">python --version</div>
+                </div>
+                
+                <div class="step">
+                    <h3>2️⃣ تثبيت المكتبات المطلوبة</h3>
+                    <p>قم بتثبيت مكتبة python-telegram-bot:</p>
+                    <div class="code-block">pip install python-telegram-bot --upgrade</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">🔑</span> الحصول على توكن البوت</h2>
+                
+                <div class="step">
+                    <h3>خطوات إنشاء البوت</h3>
+                    <ul>
+                        <li>افتح تيليجرام وابحث عن <strong>@BotFather</strong></li>
+                        <li>أرسل الأمر <code>/newbot</code></li>
+                        <li>اختر اسماً للبوت (مثل: ملفاتي بوت)</li>
+                        <li>اختر username للبوت (يجب أن ينتهي بـ bot)</li>
+                        <li>ستحصل على التوكن، احتفظ به بسرية تامة!</li>
+                    </ul>
+                </div>
+                
+                <div class="warning">
+                    <h4>⚠️ تحذير هام</h4>
+                    <p>لا تشارك التوكن مع أي شخص! من يملك التوكن يستطيع التحكم بالبوت بالكامل.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">💳</span> تفعيل نظام الدفع بالنجوم</h2>
+                
+                <div class="step">
+                    <h3>خطوات التفعيل</h3>
+                    <ul>
+                        <li>اذهب إلى <strong>@BotFather</strong></li>
+                        <li>أرسل الأمر <code>/mybots</code></li>
+                        <li>اختر البوت الخاص بك</li>
+                        <li>اختر <strong>Payments</strong></li>
+                        <li>اختر <strong>Telegram Stars</strong> كوسيلة دفع</li>
+                        <li>وافق على الشروط والأحكام</li>
+                    </ul>
+                </div>
+                
+                <div class="success">
+                    <h4>✅ ملاحظة</h4>
+                    <p>نجوم تيليجرام متاحة فقط للبوتات المعتمدة. تأكد من أن حسابك يدعم هذه الميزة.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">⚙️</span> إعداد الكود</h2>
+                
+                <div class="step">
+                    <h3>تعديل الكود</h3>
+                    <p>في ملف البوت، ابحث عن هذا السطر وضع التوكن الخاص بك:</p>
+                    <div class="code-block">BOT_TOKEN = "ضع_توكن_البوت_هنا"</div>
+                    <p>يمكنك أيضاً تعديل:</p>
+                    <ul>
+                        <li><strong>PRODUCT_NAME</strong>: اسم المنتج</li>
+                        <li><strong>PRODUCT_PRICE</strong>: السعر بالنجوم</li>
+                        <li><strong>PRODUCT_DESCRIPTION</strong>: وصف المنتج</li>
+                        <li>محتوى الملف في دالة <code>successful_payment_callback</code></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">🚀</span> تشغيل البوت</h2>
+                
+                <div class="step">
+                    <h3>خطوات التشغيل</h3>
+                    <ul>
+                        <li>احفظ الكود في ملف باسم <code>telegram_bot.py</code></li>
+                        <li>افتح Terminal أو Command Prompt</li>
+                        <li>انتقل إلى مجلد الملف</li>
+                        <li>شغل البوت بالأمر:</li>
+                    </ul>
+                    <div class="code-block">python telegram_bot.py</div>
+                </div>
+                
+                <div class="success">
+                    <h4>✨ البوت يعمل الآن!</h4>
+                    <p>اذهب إلى تيليجرام وابحث عن البوت الخاص بك وابدأ باستخدامه!</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">🎯</span> استخدام البوت</h2>
+                
+                <div class="step">
+                    <h3>الأوامر المتاحة</h3>
+                    <ul>
+                        <li><code>/start</code> - لبدء التفاعل مع البوت</li>
+                        <li><code>/help</code> - لعرض تعليمات الاستخدام</li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <h3>عملية الشراء</h3>
+                    <ul>
+                        <li>المستخدم يضغط على زر "شراء الملف"</li>
+                        <li>يظهر له فاتورة الدفع</li>
+                        <li>يدفع باستخدام نجوم تيليجرام</li>
+                        <li>يستلم الملف فوراً بعد الدفع الناجح</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">💡</span> نصائح مهمة</h2>
+                
+                <div class="warning">
+                    <h4>نصائح للنجاح</h4>
+                    <ul>
+                        <li>احتفظ بنسخة احتياطية من التوكن</li>
+                        <li>اختبر البوت جيداً قبل نشره</li>
+                        <li>يمكنك استضافة البوت على سيرفر ليعمل 24/7</li>
+                        <li>راقب السجلات (logs) لمتابعة أداء البوت</li>
+                        <li>يمكنك إضافة قاعدة بيانات لتخزين معلومات المستخدمين</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><span class="icon">🔧</span> التخصيص المتقدم</h2>
+                
+                <div class="step">
+                    <h3>أفكار للتطوير</h3>
+                    <ul>
+                        <li>إضافة منتجات متعددة بأسعار مختلفة</li>
+                        <li>إنشاء نظام خصومات وعروض</li>
+                        <li>إضافة لوحة تحكم للإحصائيات</li>
+                        <li>دعم أنواع ملفات مختلفة (صور، فيديو، PDF)</li>
+                        <li>نظام إحالة وعمولات</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
