@@ -25,8 +25,7 @@ PRODUCT_DESCRIPTION = "احصل على ملف نصي يحتوي على كلمة 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """أمر البداية"""
     keyboard = [
-        [InlineKeyboardButton("🌐 افتح صفحة المتجر", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton("🌟 شراء الملف (1 نجمة)", callback_data='buy_file')]
+        [InlineKeyboardButton("🌐 افتح المتجر", web_app=WebAppInfo(url=WEBAPP_URL))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -34,18 +33,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"مرحباً بك! 👋\n\n"
         f"🎁 المنتج المتاح: {PRODUCT_NAME}\n"
         f"💫 السعر: {PRODUCT_PRICE} نجمة تيليجرام\n\n"
-        f"يمكنك فتح صفحة المتجر أو الشراء مباشرة!"
+        f"اضغط على الزر لفتح المتجر والشراء مباشرة!"
     )
     
     await update.message.reply_text(welcome_text, reply_markup=reply_markup)
-
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """معالج أزرار الشراء"""
-    query = update.callback_query
-    await query.answer()
-    
-    if query.data == 'buy_file':
-        await send_invoice(query.message.chat_id, context)
 
 async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """معالج البيانات المرسلة من WebApp"""
@@ -53,40 +44,42 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data = json.loads(update.effective_message.web_app_data.data)
         logger.info(f"تم استقبال بيانات من WebApp: {data}")
         
-        if data.get('action') == 'buy' and data.get('product') == 'love_file':
-            # إرسال رسالة تأكيد
-            await update.message.reply_text(
-                "✅ تم استلام طلبك!\n"
-                "جاري إرسال فاتورة الدفع... 💳"
-            )
+        if data.get('action') == 'request_invoice':
+            # إنشاء رابط فاتورة
+            invoice_link = await create_invoice_link(context)
             
-            # إرسال فاتورة الدفع
-            await send_invoice(update.effective_chat.id, context)
-        else:
-            await update.message.reply_text("❌ بيانات غير صحيحة!")
+            # إرسال رابط الفاتورة للمستخدم
+            keyboard = [[InlineKeyboardButton("💳 ادفع الآن", url=invoice_link)]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.message.reply_text(
+                "✅ تم إنشاء فاتورتك!\n"
+                "اضغط على الزر للدفع 👇",
+                reply_markup=reply_markup
+            )
             
     except json.JSONDecodeError:
         logger.error("خطأ في فك تشفير بيانات JSON")
         await update.message.reply_text("❌ حدث خطأ في معالجة الطلب!")
 
-async def send_invoice(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
-    """إرسال فاتورة الدفع"""
+async def create_invoice_link(context: ContextTypes.DEFAULT_TYPE):
+    """إنشاء رابط فاتورة دفع"""
     title = PRODUCT_NAME
     description = PRODUCT_DESCRIPTION
     payload = "file_payment_payload"
-    currency = "XTR"  # عملة نجوم تيليجرام
-    
+    currency = "XTR"
     prices = [LabeledPrice("ملف أحبك", PRODUCT_PRICE)]
     
-    await context.bot.send_invoice(
-        chat_id=chat_id,
+    link = await context.bot.create_invoice_link(
         title=title,
         description=description,
         payload=payload,
-        provider_token="",  # فارغ لنجوم تيليجرام
+        provider_token="",
         currency=currency,
         prices=prices
     )
+    
+    return link
 
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """التحقق قبل إتمام الدفع"""
@@ -118,6 +111,7 @@ Te amo 💖
 Ich liebe dich 💝
 Ti amo 💓
 愛してる 💞
+사랑해 💗
 
 ═══════════════════════════════
 
@@ -157,9 +151,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
         "📖 كيفية استخدام البوت:\n\n"
         "1️⃣ اضغط على /start\n"
-        "2️⃣ افتح صفحة المتجر أو اضغط على زر الشراء\n"
-        "3️⃣ ادفع باستخدام نجوم تيليجرام ⭐\n"
-        "4️⃣ استلم الملف فوراً! 📄\n\n"
+        "2️⃣ افتح المتجر\n"
+        "3️⃣ اضغط زر الشراء في الصفحة\n"
+        "4️⃣ ادفع باستخدام نجوم تيليجرام ⭐\n"
+        "5️⃣ استلم الملف فوراً! 📄\n\n"
         "💡 ملاحظة: تأكد من توفر نجوم كافية في حسابك"
     )
     await update.message.reply_text(help_text)
@@ -173,11 +168,7 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     
-    # معالج الأزرار
-    from telegram.ext import CallbackQueryHandler
-    application.add_handler(CallbackQueryHandler(button_callback))
-    
-    # معالج بيانات WebApp - هذا الأهم!
+    # معالج بيانات WebApp
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
     
     # معالجات الدفع
