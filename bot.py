@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, PreCheckoutQueryHandler, MessageHandler, filters, ContextTypes
 
 # إعداد السجلات
@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 # ضع توكن البوت هنا
 BOT_TOKEN = "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w"
 
+# رابط صفحة الويب - ضع هنا رابط صفحتك (مثل GitHub Pages أو Netlify)
+WEBAPP_URL = "https://your-username.github.io/your-bot-page/index.html"
+
 # معلومات المنتج
 PRODUCT_NAME = "ملف كلمة أحبك"
 PRODUCT_PRICE = 1  # سعر بالنجوم
@@ -21,6 +24,7 @@ PRODUCT_DESCRIPTION = "احصل على ملف نصي يحتوي على كلمة 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """أمر البداية"""
     keyboard = [
+        [InlineKeyboardButton("🌐 افتح صفحة المتجر", web_app=WebAppInfo(url=WEBAPP_URL))],
         [InlineKeyboardButton("🌟 شراء الملف (1 نجمة)", callback_data='buy_file')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -29,7 +33,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"مرحباً بك! 👋\n\n"
         f"🎁 المنتج المتاح: {PRODUCT_NAME}\n"
         f"💫 السعر: {PRODUCT_PRICE} نجمة تيليجرام\n\n"
-        f"اضغط على الزر أدناه للشراء!"
+        f"يمكنك فتح صفحة المتجر أو الشراء مباشرة!"
     )
     
     await update.message.reply_text(welcome_text, reply_markup=reply_markup)
@@ -126,7 +130,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
         "📖 كيفية استخدام البوت:\n\n"
         "1️⃣ اضغط على /start\n"
-        "2️⃣ اضغط على زر الشراء\n"
+        "2️⃣ افتح صفحة المتجر أو اضغط على زر الشراء\n"
         "3️⃣ ادفع باستخدام نجوم تيليجرام ⭐\n"
         "4️⃣ استلم الملف فوراً! 📄\n\n"
         "💡 ملاحظة: تأكد من توفر نجوم كافية في حسابك"
