@@ -7,6 +7,7 @@ import psycopg
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import threading
+import asyncio
 
 # Logging setup
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -15,7 +16,8 @@ logger = logging.getLogger(__name__)
 # Get environment variables
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 DATABASE_URL = os.getenv('DATABASE_URL')
-WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://your-domain.com')  # Your web app URL
+WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://your-domain.com')
+PORT = int(os.getenv('PORT', 5000))
 
 # Flask app for API
 app = Flask(__name__)
@@ -23,11 +25,31 @@ CORS(app)
 
 class Database:
     def __init__(self):
-        self.conn = psycopg.connect(DATABASE_URL)
+        self.conn = None
+        self.connect()
         self.create_tables()
+    
+    def connect(self):
+        """Connect to database"""
+        try:
+            self.conn = psycopg.connect(DATABASE_URL)
+            logger.info("Database connected successfully")
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
+            raise
+    
+    def ensure_connection(self):
+        """Ensure database connection is alive"""
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('SELECT 1')
+        except:
+            logger.warning("Database connection lost, reconnecting...")
+            self.connect()
     
     def create_tables(self):
         """Create users table if not exists"""
+        self.ensure_connection()
         with self.conn.cursor() as cur:
             cur.execute('''
                 CREATE TABLE IF NOT EXISTS users (
@@ -39,9 +61,11 @@ class Database:
                 )
             ''')
             self.conn.commit()
+        logger.info("Database tables created/verified")
     
     def get_user(self, user_id):
         """Get user data"""
+        self.ensure_connection()
         with self.conn.cursor() as cur:
             cur.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
             row = cur.fetchone()
@@ -57,6 +81,7 @@ class Database:
     
     def create_user(self, user_id, username, first_name):
         """Create new user"""
+        self.ensure_connection()
         with self.conn.cursor() as cur:
             cur.execute(
                 '''INSERT INTO users (user_id, username, first_name, pigeon_count) 
@@ -69,6 +94,7 @@ class Database:
     
     def add_pigeon(self, user_id):
         """Increment pigeon count for user"""
+        self.ensure_connection()
         with self.conn.cursor() as cur:
             cur.execute(
                 'UPDATE users SET pigeon_count = pigeon_count + 1 WHERE user_id = %s',
@@ -83,14 +109,16 @@ class Database:
     
     def get_total_users(self):
         """Get total number of users"""
+        self.ensure_connection()
         with self.conn.cursor() as cur:
             cur.execute('SELECT COUNT(*) FROM users')
             return cur.fetchone()[0]
     
     def get_total_pigeons(self):
         """Get total number of pigeons across all users"""
+        self.ensure_connection()
         with self.conn.cursor() as cur:
-            cur.execute('SELECT SUM(pigeon_count) FROM users')
+            cur.execute('SELECT COALESCE(SUM(pigeon_count), 0) FROM users')
             result = cur.fetchone()[0]
             return result if result else 0
 
@@ -98,36 +126,49 @@ class Database:
 db = Database()
 
 # Flask API Endpoints
+@app.route('/')
+def home():
+    """Health check endpoint"""
+    return jsonify({'status': 'ok', 'message': 'Pigeon Bot API is running'})
+
 @app.route('/api/user/<int:user_id>', methods=['GET'])
 def get_user_stats(user_id):
     """Get user statistics"""
-    user = db.get_user(user_id)
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-    
-    total_users = db.get_total_users()
-    total_pigeons = db.get_total_pigeons()
-    
-    return jsonify({
-        'name': user['first_name'],
-        'username': user['username'] or 'N/A',
-        'pigeons': user['pigeon_count'],
-        'totalUsers': total_users,
-        'totalPigeons': total_pigeons,
-        'totalStars': total_pigeons * 1000  # Each pigeon = 1000 stars
-    })
+    try:
+        user = db.get_user(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        total_users = db.get_total_users()
+        total_pigeons = db.get_total_pigeons()
+        
+        return jsonify({
+            'name': user['first_name'],
+            'username': user['username'] or 'N/A',
+            'pigeons': user['pigeon_count'],
+            'totalUsers': total_users,
+            'totalPigeons': total_pigeons,
+            'totalStars': total_pigeons * 1000
+        })
+    except Exception as e:
+        logger.error(f"Error in get_user_stats: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/stats', methods=['GET'])
 def get_global_stats():
     """Get global statistics"""
-    total_users = db.get_total_users()
-    total_pigeons = db.get_total_pigeons()
-    
-    return jsonify({
-        'totalUsers': total_users,
-        'totalPigeons': total_pigeons,
-        'totalStars': total_pigeons * 1000
-    })
+    try:
+        total_users = db.get_total_users()
+        total_pigeons = db.get_total_pigeons()
+        
+        return jsonify({
+            'totalUsers': total_users,
+            'totalPigeons': total_pigeons,
+            'totalStars': total_pigeons * 1000
+        })
+    except Exception as e:
+        logger.error(f"Error in get_global_stats: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 # Bot Commands
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
