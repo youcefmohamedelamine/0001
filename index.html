@@ -3,315 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دليل إعداد بوت تيليجرام</title>
+    <title>💖 متجر ملفات أحبك</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
         }
-        
+
+        /* خلفية متحركة */
+        .hearts-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 24px;
+            animation: float 15s infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
         .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            color: white;
+            position: relative;
             overflow: hidden;
         }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
         }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
-        
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
+
+        .product-content {
+            position: relative;
+            z-index: 1;
         }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .section {
-            margin-bottom: 40px;
-        }
-        
-        .section h2 {
-            color: #667eea;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .step {
-            background: #f8f9fa;
-            border-right: 5px solid #667eea;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            transition: transform 0.3s ease;
-        }
-        
-        .step:hover {
-            transform: translateX(-5px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-        }
-        
-        .step h3 {
-            color: #764ba2;
-            font-size: 1.4em;
+
+        .product-icon {
+            font-size: 60px;
             margin-bottom: 15px;
         }
-        
-        .step p, .step li {
-            color: #555;
-            line-height: 1.8;
-            font-size: 1.05em;
-        }
-        
-        .step ul {
-            margin-right: 20px;
-            margin-top: 10px;
-        }
-        
-        .step li {
-            margin-bottom: 8px;
-        }
-        
-        .code-block {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 20px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            margin: 15px 0;
-            direction: ltr;
-            text-align: left;
-        }
-        
-        .warning {
-            background: #fff3cd;
-            border-right: 5px solid #ffc107;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .warning h4 {
-            color: #856404;
+
+        .product-name {
+            font-size: 24px;
+            font-weight: bold;
             margin-bottom: 10px;
-            font-size: 1.2em;
         }
-        
-        .success {
-            background: #d4edda;
-            border-right: 5px solid #28a745;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+
+        .product-description {
+            opacity: 0.9;
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
-        
-        .success h4 {
-            color: #155724;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-        
-        .icon {
-            font-size: 1.5em;
-        }
-        
-        .button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 25px;
-            text-decoration: none;
+
+        .price-tag {
+            background: rgba(255, 255, 255, 0.2);
             display: inline-block;
-            margin-top: 20px;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        .features {
+            text-align: right;
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            background: #f8f9ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
             transition: transform 0.3s ease;
         }
-        
-        .button:hover {
-            transform: scale(1.05);
+
+        .feature-item:hover {
+            transform: translateX(-5px);
+        }
+
+        .feature-icon {
+            font-size: 28px;
+            min-width: 40px;
+        }
+
+        .feature-text {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .buy-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .buy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .buy-button:active {
+            transform: translateY(0);
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .sparkle {
+            display: inline-block;
+            animation: sparkle 1.5s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="hearts-bg" id="heartsContainer"></div>
+    
     <div class="container">
-        <div class="header">
-            <h1>🤖 دليل إعداد بوت تيليجرام</h1>
-            <p>بوت بيع الملفات مقابل نجوم تيليجرام ⭐</p>
+        <div class="logo">💖</div>
+        <h1>متجر ملفات أحبك</h1>
+        <p class="subtitle">أجمل كلمات الحب في ملف واحد</p>
+
+        <div class="product-card">
+            <div class="product-content">
+                <div class="product-icon">📄✨</div>
+                <div class="product-name">ملف كلمة أحبك</div>
+                <div class="product-description">
+                    احصل على ملف نصي فريد يحتوي على كلمة "أحبك" بتصاميم وخطوط جميلة بلغات مختلفة
+                </div>
+                <div class="price-tag">
+                    <span class="sparkle">⭐</span> 1 نجمة فقط <span class="sparkle">⭐</span>
+                </div>
+            </div>
         </div>
-        
-        <div class="content">
-            <div class="section">
-                <h2><span class="icon">📋</span> المتطلبات الأساسية</h2>
-                
-                <div class="step">
-                    <h3>1️⃣ تثبيت Python</h3>
-                    <p>تأكد من تثبيت Python 3.8 أو أحدث على جهازك</p>
-                    <div class="code-block">python --version</div>
-                </div>
-                
-                <div class="step">
-                    <h3>2️⃣ تثبيت المكتبات المطلوبة</h3>
-                    <p>قم بتثبيت مكتبة python-telegram-bot:</p>
-                    <div class="code-block">pip install python-telegram-bot --upgrade</div>
-                </div>
+
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-text">تصاميم فنية جميلة ومميزة</div>
             </div>
-            
-            <div class="section">
-                <h2><span class="icon">🔑</span> الحصول على توكن البوت</h2>
-                
-                <div class="step">
-                    <h3>خطوات إنشاء البوت</h3>
-                    <ul>
-                        <li>افتح تيليجرام وابحث عن <strong>@BotFather</strong></li>
-                        <li>أرسل الأمر <code>/newbot</code></li>
-                        <li>اختر اسماً للبوت (مثل: ملفاتي بوت)</li>
-                        <li>اختر username للبوت (يجب أن ينتهي بـ bot)</li>
-                        <li>ستحصل على التوكن، احتفظ به بسرية تامة!</li>
-                    </ul>
-                </div>
-                
-                <div class="warning">
-                    <h4>⚠️ تحذير هام</h4>
-                    <p>لا تشارك التوكن مع أي شخص! من يملك التوكن يستطيع التحكم بالبوت بالكامل.</p>
-                </div>
+            <div class="feature-item">
+                <div class="feature-icon">🌍</div>
+                <div class="feature-text">كلمة أحبك بلغات مختلفة</div>
             </div>
-            
-            <div class="section">
-                <h2><span class="icon">💳</span> تفعيل نظام الدفع بالنجوم</h2>
-                
-                <div class="step">
-                    <h3>خطوات التفعيل</h3>
-                    <ul>
-                        <li>اذهب إلى <strong>@BotFather</strong></li>
-                        <li>أرسل الأمر <code>/mybots</code></li>
-                        <li>اختر البوت الخاص بك</li>
-                        <li>اختر <strong>Payments</strong></li>
-                        <li>اختر <strong>Telegram Stars</strong> كوسيلة دفع</li>
-                        <li>وافق على الشروط والأحكام</li>
-                    </ul>
-                </div>
-                
-                <div class="success">
-                    <h4>✅ ملاحظة</h4>
-                    <p>نجوم تيليجرام متاحة فقط للبوتات المعتمدة. تأكد من أن حسابك يدعم هذه الميزة.</p>
-                </div>
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">تسليم فوري بعد الدفع</div>
             </div>
-            
-            <div class="section">
-                <h2><span class="icon">⚙️</span> إعداد الكود</h2>
-                
-                <div class="step">
-                    <h3>تعديل الكود</h3>
-                    <p>في ملف البوت، ابحث عن هذا السطر وضع التوكن الخاص بك:</p>
-                    <div class="code-block">BOT_TOKEN = "ضع_توكن_البوت_هنا"</div>
-                    <p>يمكنك أيضاً تعديل:</p>
-                    <ul>
-                        <li><strong>PRODUCT_NAME</strong>: اسم المنتج</li>
-                        <li><strong>PRODUCT_PRICE</strong>: السعر بالنجوم</li>
-                        <li><strong>PRODUCT_DESCRIPTION</strong>: وصف المنتج</li>
-                        <li>محتوى الملف في دالة <code>successful_payment_callback</code></li>
-                    </ul>
-                </div>
+            <div class="feature-item">
+                <div class="feature-icon">💯</div>
+                <div class="feature-text">جودة عالية وملف جاهز للاستخدام</div>
             </div>
-            
-            <div class="section">
-                <h2><span class="icon">🚀</span> تشغيل البوت</h2>
-                
-                <div class="step">
-                    <h3>خطوات التشغيل</h3>
-                    <ul>
-                        <li>احفظ الكود في ملف باسم <code>telegram_bot.py</code></li>
-                        <li>افتح Terminal أو Command Prompt</li>
-                        <li>انتقل إلى مجلد الملف</li>
-                        <li>شغل البوت بالأمر:</li>
-                    </ul>
-                    <div class="code-block">python telegram_bot.py</div>
-                </div>
-                
-                <div class="success">
-                    <h4>✨ البوت يعمل الآن!</h4>
-                    <p>اذهب إلى تيليجرام وابحث عن البوت الخاص بك وابدأ باستخدامه!</p>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2><span class="icon">🎯</span> استخدام البوت</h2>
-                
-                <div class="step">
-                    <h3>الأوامر المتاحة</h3>
-                    <ul>
-                        <li><code>/start</code> - لبدء التفاعل مع البوت</li>
-                        <li><code>/help</code> - لعرض تعليمات الاستخدام</li>
-                    </ul>
-                </div>
-                
-                <div class="step">
-                    <h3>عملية الشراء</h3>
-                    <ul>
-                        <li>المستخدم يضغط على زر "شراء الملف"</li>
-                        <li>يظهر له فاتورة الدفع</li>
-                        <li>يدفع باستخدام نجوم تيليجرام</li>
-                        <li>يستلم الملف فوراً بعد الدفع الناجح</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2><span class="icon">💡</span> نصائح مهمة</h2>
-                
-                <div class="warning">
-                    <h4>نصائح للنجاح</h4>
-                    <ul>
-                        <li>احتفظ بنسخة احتياطية من التوكن</li>
-                        <li>اختبر البوت جيداً قبل نشره</li>
-                        <li>يمكنك استضافة البوت على سيرفر ليعمل 24/7</li>
-                        <li>راقب السجلات (logs) لمتابعة أداء البوت</li>
-                        <li>يمكنك إضافة قاعدة بيانات لتخزين معلومات المستخدمين</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2><span class="icon">🔧</span> التخصيص المتقدم</h2>
-                
-                <div class="step">
-                    <h3>أفكار للتطوير</h3>
-                    <ul>
-                        <li>إضافة منتجات متعددة بأسعار مختلفة</li>
-                        <li>إنشاء نظام خصومات وعروض</li>
-                        <li>إضافة لوحة تحكم للإحصائيات</li>
-                        <li>دعم أنواع ملفات مختلفة (صور، فيديو، PDF)</li>
-                        <li>نظام إحالة وعمولات</li>
-                    </ul>
-                </div>
-            </div>
+        </div>
+
+        <button class="buy-button" onclick="buyProduct()">
+            🌟 اشتري الآن - 1 نجمة 🌟
+        </button>
+
+        <div class="footer">
+            شكراً لاستخدامك بوتنا 💝<br>
+            جميع الحقوق محفوظة © 2025
         </div>
     </div>
+
+    <script>
+        // إنشاء قلوب متحركة في الخلفية
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = '💖';
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            heart.style.animationDelay = Math.random() * 5 + 's';
+            
+            document.getElementById('heartsContainer').appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 20000);
+        }
+
+        // إنشاء قلوب جديدة بشكل مستمر
+        setInterval(createHeart, 500);
+
+        // إنشاء قلوب أولية
+        for (let i = 0; i < 15; i++) {
+            createHeart();
+        }
+
+        // دالة الشراء
+        function buyProduct() {
+            // إرسال بيانات إلى تيليجرام إذا كان متاحاً
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.sendData(JSON.stringify({
+                    action: 'buy',
+                    product: 'love_file',
+                    price: 1
+                }));
+                window.Telegram.WebApp.close();
+            } else {
+                alert('الرجاء فتح هذه الصفحة من خلال بوت تيليجرام! 💖');
+            }
+        }
+
+        // تهيئة Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+    </script>
 </body>
 </html>
