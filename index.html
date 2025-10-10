@@ -489,30 +489,61 @@
             document.body.appendChild(pigeon);
         }
 
-        // Simulated data loading (replace with actual API call)
+        // API endpoint - replace with your actual API URL
+        const API_URL = 'https://your-api-domain.com';  // Change this to your API URL
+        
+        // Load user data from API
         function loadUserData() {
-            // Get data from URL parameters (for demo)
+            // Get data from URL parameters
             const params = new URLSearchParams(window.location.search);
             const userId = params.get('user_id');
             
             if (userId) {
-                // Simulate API call - replace with actual endpoint
-                // fetch(`/api/user/${userId}`)
-                //   .then(res => res.json())
-                //   .then(data => displayUserData(data));
-                
-                // Demo data
-                const demoData = {
-                    name: 'محمد أحمد',
-                    username: 'mohammed_pigeon',
-                    pigeons: 15,
-                    totalUsers: 1247,
-                    totalPigeons: 8934,
-                    totalStars: 8934000
-                };
-                
-                displayUserData(demoData);
+                // Fetch user data from API
+                fetch(`${API_URL}/api/user/${userId}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('Failed to fetch user data');
+                        return res.json();
+                    })
+                    .then(data => {
+                        displayUserData(data);
+                    })
+                    .catch(err => {
+                        console.error('Error loading user data:', err);
+                        // Show demo data if API fails (for testing)
+                        showDemoData();
+                    });
+            } else {
+                // Load global stats if no user_id
+                loadGlobalStats();
             }
+        }
+        
+        // Load global statistics
+        function loadGlobalStats() {
+            fetch(`${API_URL}/api/stats`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('totalUsers').textContent = data.totalUsers.toLocaleString('ar-EG');
+                    document.getElementById('totalPigeons').textContent = data.totalPigeons.toLocaleString('ar-EG');
+                    document.getElementById('totalStars').textContent = data.totalStars.toLocaleString('ar-EG');
+                })
+                .catch(err => {
+                    console.error('Error loading global stats:', err);
+                });
+        }
+        
+        // Show demo data for testing
+        function showDemoData() {
+            const demoData = {
+                name: 'محمد أحمد',
+                username: 'mohammed_pigeon',
+                pigeons: 15,
+                totalUsers: 1247,
+                totalPigeons: 8934,
+                totalStars: 8934000
+            };
+            displayUserData(demoData);
         }
 
         function displayUserData(data) {
