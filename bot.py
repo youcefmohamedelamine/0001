@@ -14,11 +14,8 @@ import os
 # ========================================
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w")
-WEB_APP_URL = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
-if WEB_APP_URL and not WEB_APP_URL.startswith('http'):
-    WEB_APP_URL = f"https://{WEB_APP_URL}"
-if not WEB_APP_URL.startswith('http'):
-    WEB_APP_URL = f"https://{WEB_APP_URL}"
+WEB_APP_URL = os.environ.get("WEB_APP_URL")
+
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
