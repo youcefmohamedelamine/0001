@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import json
 from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, PreCheckoutQueryHandler, MessageHandler, filters, ContextTypes
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 # ضع توكن البوت هنا
 BOT_TOKEN = "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w"
 
-# رابط صفحة الويب - ضع هنا رابط صفحتك (مثل GitHub Pages أو Netlify)
+# رابط صفحة الويب
 WEBAPP_URL = "https://youcefmohamedelamine.github.io/0001/index.html"
 
 # معلومات المنتج
@@ -44,13 +45,32 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     if query.data == 'buy_file':
-        await send_invoice(query, context)
+        await send_invoice(query.message.chat_id, context)
 
-async def send_invoice(query, context: ContextTypes.DEFAULT_TYPE):
+async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """معالج البيانات المرسلة من WebApp"""
+    try:
+        data = json.loads(update.effective_message.web_app_data.data)
+        logger.info(f"تم استقبال بيانات من WebApp: {data}")
+        
+        if data.get('action') == 'buy' and data.get('product') == 'love_file':
+            # إرسال رسالة تأكيد
+            await update.message.reply_text(
+                "✅ تم استلام طلبك!\n"
+                "جاري إرسال فاتورة الدفع... 💳"
+            )
+            
+            # إرسال فاتورة الدفع
+            await send_invoice(update.effective_chat.id, context)
+        else:
+            await update.message.reply_text("❌ بيانات غير صحيحة!")
+            
+    except json.JSONDecodeError:
+        logger.error("خطأ في فك تشفير بيانات JSON")
+        await update.message.reply_text("❌ حدث خطأ في معالجة الطلب!")
+
+async def send_invoice(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     """إرسال فاتورة الدفع"""
-    chat_id = query.message.chat_id
-    
-    # إنشاء الفاتورة
     title = PRODUCT_NAME
     description = PRODUCT_DESCRIPTION
     payload = "file_payment_payload"
@@ -72,7 +92,6 @@ async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     """التحقق قبل إتمام الدفع"""
     query = update.pre_checkout_query
     
-    # يمكنك إضافة فحوصات إضافية هنا
     if query.invoice_payload == "file_payment_payload":
         await query.answer(ok=True)
     else:
@@ -96,8 +115,16 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
 I Love You 💕
 Je t'aime 💗
 Te amo 💖
+Ich liebe dich 💝
+Ti amo 💓
+愛してる 💞
+
+═══════════════════════════════
 
 شكراً لشرائك من بوتنا! 🌟
+نتمنى أن تعجبك هذه الكلمات الجميلة 💝
+
+═══════════════════════════════
     """
     
     # حفظ الملف مؤقتاً
@@ -149,6 +176,9 @@ def main():
     # معالج الأزرار
     from telegram.ext import CallbackQueryHandler
     application.add_handler(CallbackQueryHandler(button_callback))
+    
+    # معالج بيانات WebApp - هذا الأهم!
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
     
     # معالجات الدفع
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
