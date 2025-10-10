@@ -14,7 +14,7 @@ import os
 # ========================================
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w")
-WEB_APP_URL = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "https://0001-production.up.railway.app")
+WEB_APP_URL = os.environ.get("WEB_APP_URL") or os.environ.get("RAILWAY_PUBLIC_DOMAIN", "https://0001-production.up.railway.app")
 
 if not WEB_APP_URL.startswith('http'):
     WEB_APP_URL = f"https://{WEB_APP_URL}"
