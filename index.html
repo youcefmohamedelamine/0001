@@ -250,15 +250,30 @@
             }
         }
 
-        .loading {
+        .message {
             display: none;
             margin-top: 20px;
-            color: #667eea;
+            padding: 15px;
+            border-radius: 15px;
             font-weight: bold;
         }
 
-        .loading.active {
+        .message.success {
             display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .message.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
         }
     </style>
 </head>
@@ -306,7 +321,7 @@
             🌟 اشتري الآن - 1 نجمة 🌟
         </button>
 
-        <div class="loading" id="loading">⏳ جاري معالجة الطلب...</div>
+        <div class="message" id="message"></div>
 
         <div class="footer">
             شكراً لاستخدامك بوتنا 💝<br>
@@ -346,33 +361,52 @@
             createHeart();
         }
 
+        // دالة عرض الرسائل
+        function showMessage(text, type = 'info') {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+        }
+
         // دالة الشراء
         function buyProduct() {
             const buyBtn = document.getElementById('buyBtn');
-            const loading = document.getElementById('loading');
-
-            // تعطيل الزر وإظهار التحميل
+            
+            // تعطيل الزر
             buyBtn.disabled = true;
-            loading.classList.add('active');
+            showMessage('⏳ جاري معالجة طلبك...', 'info');
 
-            // إرسال البيانات للبوت
+            // إرسال البيانات للبوت بدون إغلاق الصفحة
             tg.sendData(JSON.stringify({
-                action: 'request_invoice',
+                action: 'buy',
                 product: 'love_file',
                 price: 1,
                 timestamp: Date.now()
             }));
 
-            // إغلاق الصفحة بعد 1 ثانية لإعطاء الوقت لإرسال البيانات
+            // عرض رسالة للمستخدم
             setTimeout(() => {
-                tg.close();
+                showMessage('✅ تم إرسال طلبك! سيصلك رابط الدفع في المحادثة', 'success');
+                
+                // إعادة تفعيل الزر بعد 3 ثواني
+                setTimeout(() => {
+                    buyBtn.disabled = false;
+                    showMessage('');
+                }, 3000);
             }, 1000);
         }
 
         // تخصيص زر الإغلاق الرئيسي
         tg.MainButton.setText('🌟 اشتري الآن');
+        tg.MainButton.color = '#667eea';
         tg.MainButton.show();
         tg.MainButton.onClick(buyProduct);
+
+        // زر الرجوع
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            tg.close();
+        });
     </script>
 </body>
 </html>
