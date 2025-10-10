@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💖 متجر ملفات أحبك</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -23,7 +24,6 @@
             overflow-x: hidden;
         }
 
-        /* خلفية متحركة */
         .hearts-bg {
             position: fixed;
             top: 0;
@@ -225,6 +225,11 @@
             transform: translateY(0);
         }
 
+        .buy-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .footer {
             margin-top: 30px;
             color: #999;
@@ -243,6 +248,17 @@
             50% {
                 opacity: 0.3;
             }
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .loading.active {
+            display: block;
         }
     </style>
 </head>
@@ -286,9 +302,11 @@
             </div>
         </div>
 
-        <button class="buy-button" onclick="buyProduct()">
+        <button class="buy-button" id="buyBtn" onclick="buyProduct()">
             🌟 اشتري الآن - 1 نجمة 🌟
         </button>
+
+        <div class="loading" id="loading">⏳ جاري معالجة الطلب...</div>
 
         <div class="footer">
             شكراً لاستخدامك بوتنا 💝<br>
@@ -297,6 +315,12 @@
     </div>
 
     <script>
+        const tg = window.Telegram.WebApp;
+
+        // تهيئة Telegram WebApp
+        tg.ready();
+        tg.expand();
+
         // إنشاء قلوب متحركة في الخلفية
         function createHeart() {
             const heart = document.createElement('div');
@@ -324,24 +348,31 @@
 
         // دالة الشراء
         function buyProduct() {
-            // إرسال بيانات إلى تيليجرام إذا كان متاحاً
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.sendData(JSON.stringify({
-                    action: 'buy',
-                    product: 'love_file',
-                    price: 1
-                }));
-                window.Telegram.WebApp.close();
-            } else {
-                alert('الرجاء فتح هذه الصفحة من خلال بوت تيليجرام! 💖');
-            }
+            const buyBtn = document.getElementById('buyBtn');
+            const loading = document.getElementById('loading');
+
+            // تعطيل الزر وإظهار التحميل
+            buyBtn.disabled = true;
+            loading.classList.add('active');
+
+            // إرسال البيانات للبوت
+            tg.sendData(JSON.stringify({
+                action: 'request_invoice',
+                product: 'love_file',
+                price: 1,
+                timestamp: Date.now()
+            }));
+
+            // إغلاق الصفحة بعد 1 ثانية لإعطاء الوقت لإرسال البيانات
+            setTimeout(() => {
+                tg.close();
+            }, 1000);
         }
 
-        // تهيئة Telegram WebApp
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
-        }
+        // تخصيص زر الإغلاق الرئيسي
+        tg.MainButton.setText('🌟 اشتري الآن');
+        tg.MainButton.show();
+        tg.MainButton.onClick(buyProduct);
     </script>
 </body>
 </html>
