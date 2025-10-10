@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w"
 
 # رابط صفحة الويب - ضع هنا رابط صفحتك (مثل GitHub Pages أو Netlify)
-WEBAPP_URL = "https://your-username.github.io/your-bot-page/index.html"
+WEBAPP_URL = "https://youcefmohamedelamine.github.io/0001/index.html"
 
 # معلومات المنتج
 PRODUCT_NAME = "ملف كلمة أحبك"
