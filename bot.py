@@ -14,7 +14,7 @@ import os
 # ========================================
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w")
-WEB_APP_URL = os.environ.get("WEB_APP_URL")
+WEB_APP_URL = "https://0001-production.up.railway.app"
 
 
 bot = telebot.TeleBot(BOT_TOKEN)
