@@ -6,10 +6,10 @@ from datetime import datetime
 import json
 
 # ضع توكن البوت الخاص بك هنا
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = "7253548907:AAGCTAfnGBK9ub_mar_ePG-1OhZ45APIR9w"
 
 # عنوان محفظة TON الخاصة بك لاستقبال المدفوعات
-MERCHANT_WALLET = "YOUR_TON_WALLET_ADDRESS"
+MERCHANT_WALLET = "UQD43SvwO1tguKvIeDkDixxBIF_hOLGiKXU7rZtak9FZsWG3"
 
 # السعر بالـ TON (بالنانو تون: 1 TON = 1,000,000,000 nanoTON)
 PRICE_TON = 1.0
