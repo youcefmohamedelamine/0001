@@ -637,6 +637,23 @@
         if (tg) {
             tg.ready();
             tg.expand();
+            
+            // إعداد MainButton
+            tg.MainButton.setText('⭐ ادفع 1 نجمة');
+            tg.MainButton.color = '#667eea';
+            tg.MainButton.textColor = '#ffffff';
+            
+            // عند الضغط على MainButton
+            tg.MainButton.onClick(() => {
+                if (!isProcessing) {
+                    showModal('confirmModal');
+                }
+            });
+            
+            // إظهار MainButton
+            tg.MainButton.show();
+            
+            // زر الرجوع
             tg.BackButton.show();
             tg.BackButton.onClick(() => tg.close());
         }
@@ -663,7 +680,14 @@
         function initiatePayment() {
             if (isProcessing) return;
             
-            showModal('confirmModal');
+            // إذا كان MainButton مفعّل، استخدمه
+            if (tg && tg.MainButton) {
+                tg.MainButton.show();
+                tg.MainButton.enable();
+            } else {
+                // إذا لم يكن متاح، أظهر Modal مباشرة
+                showModal('confirmModal');
+            }
         }
 
         // تأكيد الدفع
@@ -679,31 +703,50 @@
             buyBtn.disabled = true;
             spinner.classList.add('show');
             
-            showToast('جاري معالجة طلبك...', 'info', '⏳');
+            // تعطيل MainButton
+            if (tg && tg.MainButton) {
+                tg.MainButton.showProgress();
+                tg.MainButton.disable();
+            }
+            
+            showToast('جاري إنشاء الفاتورة...', 'info', '⏳');
 
-            // محاكاة معالجة الدفع
-            setTimeout(() => {
-                // إرسال البيانات للبوت
-                const orderData = {
-                    action: 'create_payment',
-                    product: 'love_file',
-                    paymentMethod: selectedPaymentMethod,
-                    price: selectedPaymentMethod === 'stars' ? 1 : (selectedPaymentMethod === 'crypto' ? 0.50 : 1.00),
-                    currency: selectedPaymentMethod === 'stars' ? 'STARS' : (selectedPaymentMethod === 'crypto' ? 'USDT' : 'USD'),
-                    timestamp: Date.now(),
-                    userId: tg?.initDataUnsafe?.user?.id || 'demo_user'
-                };
+            // إرسال البيانات للبوت
+            const orderData = {
+                action: 'create_invoice',
+                product_id: 'love_file_001',
+                product_name: 'ملف كلمة أحبك',
+                amount: 1,
+                currency: 'XTR',
+                description: 'ملف نصي فريد يحتوي على كلمة أحبك بتصاميم جميلة',
+                timestamp: Date.now(),
+                user_id: tg?.initDataUnsafe?.user?.id || null,
+                user_name: tg?.initDataUnsafe?.user?.first_name || 'مستخدم'
+            };
 
-                if (tg) {
-                    tg.sendData(JSON.stringify(orderData));
-                }
-
-                spinner.classList.remove('show');
-                showModal('successModal');
-                showToast('تم إرسال طلبك بنجاح! ✅', 'success', '✅');
+            if (tg) {
+                // إرسال البيانات مباشرة
+                tg.sendData(JSON.stringify(orderData));
                 
-                isProcessing = false;
-            }, 2000);
+                // إظهار رسالة النجاح
+                setTimeout(() => {
+                    spinner.classList.remove('show');
+                    showModal('successModal');
+                    showToast('تم الإرسال! انتظر رابط الدفع 📱', 'success', '✅');
+                    
+                    if (tg.MainButton) {
+                        tg.MainButton.hideProgress();
+                    }
+                }, 1000);
+            } else {
+                // في حالة عدم توفر Telegram
+                setTimeout(() => {
+                    spinner.classList.remove('show');
+                    showToast('⚠️ يجب فتح الصفحة من تيليجرام', 'error', '❌');
+                    buyBtn.disabled = false;
+                    isProcessing = false;
+                }, 1000);
+            }
         }
 
         // عرض Modal
