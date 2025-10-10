@@ -25,7 +25,7 @@ if RAILWAY_DOMAIN:
         WEB_APP_URL = RAILWAY_DOMAIN
 else:
     # للتطوير المحلي فقط
-    WEB_APP_URL = "https://de-production.up.railway.app"
+    WEB_APP_URL = "https://0001-production.up.railway.app"
 
 print(f"✅ WEB_APP_URL: {WEB_APP_URL}")
 
