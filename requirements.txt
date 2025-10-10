@@ -1,5 +1,6 @@
 pytelegrambotapi==4.14.0
 python-telegram-bot==13.15
+imghdr-py==0.3.1
 
 Flask==3.0.0
 gunicorn==21.2.0
