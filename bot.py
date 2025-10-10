@@ -14,8 +14,20 @@ import os
 # ========================================
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w")
-WEB_APP_URL = "https://de-production.up.railway.app"
 
+# استخدم RAILWAY_PUBLIC_DOMAIN مباشرة
+RAILWAY_DOMAIN = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+
+if RAILWAY_DOMAIN:
+    if not RAILWAY_DOMAIN.startswith('http'):
+        WEB_APP_URL = f"https://{RAILWAY_DOMAIN}"
+    else:
+        WEB_APP_URL = RAILWAY_DOMAIN
+else:
+    # للتطوير المحلي فقط
+    WEB_APP_URL = "https://0001-production.up.railway.app"
+
+print(f"✅ WEB_APP_URL: {WEB_APP_URL}")
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
@@ -365,7 +377,7 @@ def home():
 
 @app.route('/health')
 def health():
-    return jsonify({'status': 'ok', 'bot': 'running'})
+    return jsonify({'status': 'ok', 'bot': 'running', 'web_app_url': WEB_APP_URL})
 
 @app.route('/api/purchase', methods=['POST'])
 def api_purchase():
