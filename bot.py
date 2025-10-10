@@ -11,7 +11,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ضع توكن البوت هنا
-BOT_TOKEN = "ضع_توكن_البوت_هنا"
+BOT_TOKEN = "7253548907:AAE3jhMGY5lY-B6lLtouJpqXPs0RepUIF2w"
 
 # معلومات المنتج
 PRODUCT_NAME = "ملف كلمة أحبك"
