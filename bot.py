@@ -1544,7 +1544,8 @@ def main():
     if not init_database():
         print("❌ فشل في تهيئة قاعدة البيانات!")
         return
-    stats_manager.start_web_dashboard(port=5000, threaded=True)
+    port = int(os.getenv("PORT", 5000))
+    stats_manager.start_web_dashboard(host='0.0.0.0', port=port, threaded=False)
     print("✅ قاعدة البيانات جاهزة")
     print(f"💳 السعر لكل كود: {PRICE_PER_CODE} نجمة ⭐")
     print(f"📦 عدد الأكواد المتاحة: {len(CODES)}")
