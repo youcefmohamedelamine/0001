@@ -1,461 +1,330 @@
 """
-Telegram Bot - Sell Python Codes for Stars
-This bot sells 10 different Python code examples for 999 Telegram Stars each
-Fixed for Python 3.13 compatibility
+Simple Telegram Bot - Sell Python Codes for Stars
+Works with any Python version - uses only requests library
 """
 
-from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, PreCheckoutQueryHandler, MessageHandler, filters, ContextTypes
-import re
+import requests
+import time
+import json
 
-# Your Bot Token from BotFather
+# Configuration
 BOT_TOKEN = "7580086418:AAGi6mVgzONAl1koEbXfk13eDYTzCeMdDWg"
-
-# Price in Telegram Stars (1 Star = 1 unit)
+BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 PRICE_PER_CODE = 999
 
-# Available Python Codes for Sale
-PYTHON_CODES = {
+# Simple Python codes for sale
+CODES = {
     "1": {
-        "name": "Password Generator",
-        "description": "Generate secure random passwords with customizable length and characters",
-        "price": PRICE_PER_CODE,
-        "code": """import random
-import string
-
-def generate_password(length=12):
-    characters = string.ascii_letters + string.digits + "!@#$%^&*()"
-    password = ''.join(random.choice(characters) for _ in range(length))
-    return password
-
-# Usage
-print(generate_password(16))"""
+        "name": "Temperature Converter",
+        "desc": "Convert between Celsius and Fahrenheit",
+        "code": "def celsius_to_fahrenheit(c):\n    return (c * 9/5) + 32\n\ndef fahrenheit_to_celsius(f):\n    return (f - 32) * 5/9\n\nprint(celsius_to_fahrenheit(25))\nprint(fahrenheit_to_celsius(77))"
     },
     "2": {
-        "name": "File Organizer",
-        "description": "Automatically organize files in folders by extension",
-        "price": PRICE_PER_CODE,
-        "code": """import os
-import shutil
-
-def organize_files(directory):
-    for filename in os.listdir(directory):
-        if os.path.isfile(os.path.join(directory, filename)):
-            extension = filename.split('.')[-1]
-            folder = os.path.join(directory, extension.upper())
-            
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-            
-            shutil.move(
-                os.path.join(directory, filename),
-                os.path.join(folder, filename)
-            )
-    print("Files organized!")
-
-# Usage
-organize_files("./my_folder")"""
+        "name": "Random Password",
+        "desc": "Generate random password",
+        "code": "import random\nimport string\n\ndef gen_pass(length=8):\n    chars = string.ascii_letters + string.digits\n    return ''.join(random.choice(chars) for i in range(length))\n\nprint(gen_pass(12))"
     },
     "3": {
-        "name": "QR Code Generator",
-        "description": "Create QR codes from text or URLs",
-        "price": PRICE_PER_CODE,
-        "code": """import qrcode
-
-def create_qr_code(data, filename="qrcode.png"):
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(data)
-    qr.make(fit=True)
-    
-    img = qr.make_image(fill_color="black", back_color="white")
-    img.save(filename)
-    print(f"QR Code saved as {filename}")
-
-# Usage
-create_qr_code("https://example.com")"""
+        "name": "List Files",
+        "desc": "List all files in directory",
+        "code": "import os\n\ndef list_files(path='.'):\n    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]\n    return files\n\nprint(list_files())"
     },
     "4": {
-        "name": "Email Validator",
-        "description": "Validate email addresses using regex",
-        "price": PRICE_PER_CODE,
-        "code": """import re
-
-def validate_email(email):
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
-    
-    if re.match(pattern, email):
-        return True
-    return False
-
-# Usage
-emails = ["test@example.com", "invalid.email", "user@domain.co"]
-for email in emails:
-    print(f"{email}: {validate_email(email)}")"""
+        "name": "Count Words",
+        "desc": "Count words in text",
+        "code": "def count_words(text):\n    words = text.split()\n    return len(words)\n\ntext = 'Hello world from Python'\nprint(f'Words: {count_words(text)}')"
     },
     "5": {
-        "name": "Weather API Client",
-        "description": "Fetch weather data from OpenWeatherMap API",
-        "price": PRICE_PER_CODE,
-        "code": """import requests
-
-def get_weather(city, api_key):
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
-    
-    response = requests.get(url)
-    data = response.json()
-    
-    if response.status_code == 200:
-        temp = data['main']['temp']
-        desc = data['weather'][0]['description']
-        return f"{city}: {temp}°C, {desc}"
-    return "City not found"
-
-# Usage
-# api_key = "YOUR_API_KEY"
-# print(get_weather("London", api_key))"""
+        "name": "Sum Numbers",
+        "desc": "Sum all numbers in a list",
+        "code": "def sum_list(numbers):\n    total = 0\n    for num in numbers:\n        total += num\n    return total\n\nmy_list = [1, 2, 3, 4, 5]\nprint(f'Sum: {sum_list(my_list)}')"
     },
     "6": {
-        "name": "URL Shortener",
-        "description": "Shorten URLs using TinyURL API",
-        "price": PRICE_PER_CODE,
-        "code": """import requests
-
-def shorten_url(long_url):
-    api_url = f"http://tinyurl.com/api-create.php?url={long_url}"
-    response = requests.get(api_url)
-    
-    if response.status_code == 200:
-        return response.text
-    return "Error shortening URL"
-
-# Usage
-long_url = "https://www.example.com/very/long/url/here"
-short_url = shorten_url(long_url)
-print(f"Short URL: {short_url}")"""
+        "name": "Find Max",
+        "desc": "Find maximum number in list",
+        "code": "def find_max(numbers):\n    if not numbers:\n        return None\n    max_num = numbers[0]\n    for num in numbers:\n        if num > max_num:\n            max_num = num\n    return max_num\n\nprint(find_max([3, 7, 2, 9, 1]))"
     },
     "7": {
-        "name": "PDF to Text Converter",
-        "description": "Extract text from PDF files",
-        "price": PRICE_PER_CODE,
-        "code": """import PyPDF2
-
-def pdf_to_text(pdf_path):
-    text = ""
-    
-    with open(pdf_path, 'rb') as file:
-        pdf_reader = PyPDF2.PdfReader(file)
-        
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-    
-    return text
-
-# Usage
-content = pdf_to_text("document.pdf")
-print(content)"""
+        "name": "Reverse String",
+        "desc": "Reverse any string",
+        "code": "def reverse_string(text):\n    return text[::-1]\n\ntext = 'Hello Python'\nprint(reverse_string(text))"
     },
     "8": {
-        "name": "YouTube Video Downloader",
-        "description": "Download YouTube videos using pytube",
-        "price": PRICE_PER_CODE,
-        "code": """from pytube import YouTube
-
-def download_video(url, path="./downloads"):
-    yt = YouTube(url)
-    stream = yt.streams.get_highest_resolution()
-    
-    print(f"Downloading: {yt.title}")
-    stream.download(path)
-    print("Download complete!")
-
-# Usage
-url = "https://www.youtube.com/watch?v=VIDEO_ID"
-download_video(url)"""
+        "name": "Is Even",
+        "desc": "Check if number is even",
+        "code": "def is_even(num):\n    return num % 2 == 0\n\nfor i in range(1, 11):\n    print(f'{i} is even: {is_even(i)}')"
     },
     "9": {
-        "name": "Image Resizer",
-        "description": "Resize images to specified dimensions",
-        "price": PRICE_PER_CODE,
-        "code": """from PIL import Image
-
-def resize_image(input_path, output_path, width, height):
-    img = Image.open(input_path)
-    resized_img = img.resize((width, height), Image.LANCZOS)
-    resized_img.save(output_path)
-    print(f"Image resized and saved to {output_path}")
-
-# Usage
-resize_image("input.jpg", "output.jpg", 800, 600)"""
+        "name": "Remove Duplicates",
+        "desc": "Remove duplicate items from list",
+        "code": "def remove_duplicates(items):\n    return list(set(items))\n\nmy_list = [1, 2, 2, 3, 3, 4, 5, 5]\nprint(remove_duplicates(my_list))"
     },
     "10": {
-        "name": "JSON to CSV Converter",
-        "description": "Convert JSON files to CSV format",
-        "price": PRICE_PER_CODE,
-        "code": """import json
-import csv
-
-def json_to_csv(json_file, csv_file):
-    with open(json_file, 'r') as jf:
-        data = json.load(jf)
-    
-    with open(csv_file, 'w', newline='') as cf:
-        if isinstance(data, list) and len(data) > 0:
-            writer = csv.DictWriter(cf, fieldnames=data[0].keys())
-            writer.writeheader()
-            writer.writerows(data)
-    
-    print(f"Converted {json_file} to {csv_file}")
-
-# Usage
-json_to_csv("data.json", "output.csv")"""
+        "name": "Count Vowels",
+        "desc": "Count vowels in a string",
+        "code": "def count_vowels(text):\n    vowels = 'aeiouAEIOU'\n    count = 0\n    for char in text:\n        if char in vowels:\n            count += 1\n    return count\n\nprint(count_vowels('Hello World'))"
     }
 }
 
-# Store purchased codes per user
-user_purchases = {}
+# Store purchases (in production, use a database)
+purchases = {}
+last_update_id = 0
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Start command - Welcome message"""
-    welcome_text = """
-🐍 **Welcome to Python Code Shop!**
+def send_message(chat_id, text, reply_markup=None):
+    """Send text message"""
+    url = f"{BASE_URL}/sendMessage"
+    data = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "Markdown"
+    }
+    if reply_markup:
+        data["reply_markup"] = json.dumps(reply_markup)
+    
+    try:
+        response = requests.post(url, json=data)
+        return response.json()
+    except Exception as e:
+        print(f"Error sending message: {e}")
+        return None
 
-Buy premium Python code examples for only **999 Stars** each!
 
-📚 **Available Codes:**
-1. Password Generator
-2. File Organizer
-3. QR Code Generator
-4. Email Validator
-5. Weather API Client
-6. URL Shortener
-7. PDF to Text Converter
-8. YouTube Video Downloader
-9. Image Resizer
-10. JSON to CSV Converter
+def send_invoice(chat_id, code_id):
+    """Send payment invoice"""
+    code = CODES[code_id]
+    url = f"{BASE_URL}/sendInvoice"
+    
+    payload = {
+        "chat_id": chat_id,
+        "title": code["name"],
+        "description": code["desc"],
+        "payload": f"code_{code_id}_{chat_id}",
+        "currency": "XTR",  # Telegram Stars
+        "prices": [{"label": code["name"], "amount": PRICE_PER_CODE}]
+    }
+    
+    try:
+        response = requests.post(url, json=payload)
+        return response.json()
+    except Exception as e:
+        print(f"Error sending invoice: {e}")
+        return None
 
-Use /catalog to browse all codes
-Use /buy [number] to purchase a code
-Use /help for more information
+
+def answer_pre_checkout(pre_checkout_id, ok=True):
+    """Answer pre-checkout query"""
+    url = f"{BASE_URL}/answerPreCheckoutQuery"
+    data = {
+        "pre_checkout_query_id": pre_checkout_id,
+        "ok": ok
+    }
+    requests.post(url, json=data)
+
+
+def handle_start(chat_id):
+    """Handle /start command"""
+    text = """
+🐍 *Welcome to Python Code Shop!*
+
+Buy simple Python codes for *999 Stars* each!
+
+*Available Codes:*
+1. Temperature Converter
+2. Random Password Generator
+3. List Files in Directory
+4. Count Words in Text
+5. Sum Numbers in List
+6. Find Maximum Number
+7. Reverse String
+8. Check if Even Number
+9. Remove Duplicates
+10. Count Vowels
+
+*Commands:*
+/catalog - Browse all codes
+/buy [1-10] - Buy a code
+/mycodes - Your purchased codes
 """
-    await update.message.reply_text(welcome_text, parse_mode='Markdown')
+    send_message(chat_id, text)
 
 
-async def catalog(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show catalog with inline buttons"""
-    keyboard = []
+def handle_catalog(chat_id):
+    """Show catalog"""
+    text = "📚 *Available Python Codes:*\n\n"
+    for code_id, code in CODES.items():
+        text += f"{code_id}. *{code['name']}* - {code['desc']}\n"
     
-    for code_id, code_info in PYTHON_CODES.items():
-        button = InlineKeyboardButton(
-            f"⭐ {code_info['name']} - {code_info['price']} Stars",
-            callback_data=f"buy_{code_id}"
-        )
-        keyboard.append([button])
+    text += f"\n💰 Price: *{PRICE_PER_CODE} Stars* each\n"
+    text += "\nUse /buy [number] to purchase"
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-        "🛍️ **Select a code to purchase:**\n\nClick on any code below to see details and buy!",
-        reply_markup=reply_markup,
-        parse_mode='Markdown'
-    )
+    send_message(chat_id, text)
 
 
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle button clicks"""
-    query = update.callback_query
-    await query.answer()
-    
-    if query.data.startswith("buy_"):
-        code_id = query.data.split("_")[1]
-        code_info = PYTHON_CODES.get(code_id)
-        
-        if code_info:
-            details_text = f"""
-📦 **{code_info['name']}**
-
-📝 Description: {code_info['description']}
-💰 Price: **{code_info['price']} Stars**
-
-To purchase, use command:
-/buy {code_id}
-"""
-            await query.edit_message_text(details_text, parse_mode='Markdown')
-
-
-async def buy_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /buy command"""
-    if not context.args:
-        await update.message.reply_text("❌ Please specify code number: /buy [1-10]")
+def handle_buy(chat_id, code_id):
+    """Handle buy command"""
+    if code_id not in CODES:
+        send_message(chat_id, "❌ Invalid code number. Use /catalog to see available codes.")
         return
-    
-    code_id = context.args[0]
-    
-    if code_id not in PYTHON_CODES:
-        await update.message.reply_text("❌ Invalid code number. Use /catalog to see available codes.")
-        return
-    
-    code_info = PYTHON_CODES[code_id]
-    user_id = update.effective_user.id
     
     # Check if already purchased
-    if user_id in user_purchases and code_id in user_purchases[user_id]:
-        await update.message.reply_text(
-            f"✅ You already own this code!\n\nHere it is again:\n\n```python\n{code_info['code']}\n```",
-            parse_mode='Markdown'
-        )
+    if chat_id in purchases and code_id in purchases[chat_id]:
+        code = CODES[code_id]
+        text = f"✅ You already own this code!\n\n*{code['name']}*\n\n```python\n{code['code']}\n```"
+        send_message(chat_id, text)
         return
     
-    # Create invoice
-    title = code_info['name']
-    description = code_info['description']
-    payload = f"code_{code_id}_{user_id}"
-    currency = "XTR"  # Telegram Stars currency
-    prices = [LabeledPrice(label=title, amount=code_info['price'])]
+    # Send invoice
+    send_invoice(chat_id, code_id)
+
+
+def handle_mycodes(chat_id):
+    """Show purchased codes"""
+    if chat_id not in purchases or not purchases[chat_id]:
+        send_message(chat_id, "📭 You haven't purchased any codes yet.\n\nUse /catalog to browse!")
+        return
     
-    await context.bot.send_invoice(
-        chat_id=update.effective_chat.id,
-        title=title,
-        description=description,
-        payload=payload,
-        provider_token="",  # Empty for Stars
-        currency=currency,
-        prices=prices
-    )
-
-
-async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle pre-checkout query"""
-    query = update.pre_checkout_query
+    text = "📚 *Your Purchased Codes:*\n\n"
+    for code_id in purchases[chat_id]:
+        code = CODES[code_id]
+        text += f"✅ {code['name']}\n"
     
-    # Always approve for this demo
-    await query.answer(ok=True)
+    text += "\nUse /resend [number] to get a code again"
+    send_message(chat_id, text)
 
 
-async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def handle_resend(chat_id, code_id):
+    """Resend purchased code"""
+    if chat_id not in purchases or code_id not in purchases[chat_id]:
+        send_message(chat_id, "❌ You don't own this code. Use /buy to purchase it!")
+        return
+    
+    code = CODES[code_id]
+    text = f"📦 *{code['name']}*\n\n```python\n{code['code']}\n```"
+    send_message(chat_id, text)
+
+
+def handle_successful_payment(chat_id, payload):
     """Handle successful payment"""
-    payment = update.message.successful_payment
-    payload = payment.invoice_payload
-    
-    # Extract code_id and user_id from payload
     parts = payload.split("_")
     code_id = parts[1]
-    user_id = int(parts[2])
     
     # Store purchase
-    if user_id not in user_purchases:
-        user_purchases[user_id] = []
-    user_purchases[user_id].append(code_id)
+    if chat_id not in purchases:
+        purchases[chat_id] = []
+    purchases[chat_id].append(code_id)
     
     # Send the code
-    code_info = PYTHON_CODES[code_id]
-    
-    success_message = f"""
-✅ **Payment Successful!**
+    code = CODES[code_id]
+    text = f"""
+✅ *Payment Successful!*
 
 Thank you for your purchase!
 
-📦 **{code_info['name']}**
+📦 *{code['name']}*
 
 Here's your Python code:
 
 ```python
-{code_info['code']}
+{code['code']}
 ```
 
-Enjoy your code! 🎉
-Use /catalog to buy more codes!
+🎉 Enjoy your code!
+Use /catalog to buy more!
 """
-    
-    await update.message.reply_text(success_message, parse_mode='Markdown')
+    send_message(chat_id, text)
 
 
-async def my_codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show user's purchased codes"""
-    user_id = update.effective_user.id
+def process_update(update):
+    """Process incoming update"""
+    global purchases
     
-    if user_id not in user_purchases or not user_purchases[user_id]:
-        await update.message.reply_text("📭 You haven't purchased any codes yet.\n\nUse /catalog to browse!")
-        return
+    # Handle messages
+    if "message" in update:
+        message = update["message"]
+        chat_id = message["chat"]["id"]
+        
+        # Handle successful payment
+        if "successful_payment" in message:
+            payload = message["successful_payment"]["invoice_payload"]
+            handle_successful_payment(chat_id, payload)
+            return
+        
+        # Handle commands
+        if "text" in message:
+            text = message["text"]
+            
+            if text == "/start":
+                handle_start(chat_id)
+            
+            elif text == "/catalog":
+                handle_catalog(chat_id)
+            
+            elif text.startswith("/buy"):
+                parts = text.split()
+                if len(parts) > 1:
+                    code_id = parts[1]
+                    handle_buy(chat_id, code_id)
+                else:
+                    send_message(chat_id, "❌ Please specify code number: /buy [1-10]")
+            
+            elif text == "/mycodes":
+                handle_mycodes(chat_id)
+            
+            elif text.startswith("/resend"):
+                parts = text.split()
+                if len(parts) > 1:
+                    code_id = parts[1]
+                    handle_resend(chat_id, code_id)
+                else:
+                    send_message(chat_id, "❌ Please specify code number: /resend [1-10]")
     
-    codes_list = "📚 **Your Purchased Codes:**\n\n"
-    
-    for code_id in user_purchases[user_id]:
-        code_info = PYTHON_CODES[code_id]
-        codes_list += f"✅ {code_info['name']}\n"
-    
-    codes_list += "\n💡 Use /resend [number] to get a code again"
-    
-    await update.message.reply_text(codes_list, parse_mode='Markdown')
+    # Handle pre-checkout query
+    elif "pre_checkout_query" in update:
+        query = update["pre_checkout_query"]
+        answer_pre_checkout(query["id"], ok=True)
 
 
-async def resend_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Resend a purchased code"""
-    user_id = update.effective_user.id
+def get_updates():
+    """Get updates from Telegram"""
+    global last_update_id
     
-    if not context.args:
-        await update.message.reply_text("❌ Please specify code number: /resend [1-10]")
-        return
+    url = f"{BASE_URL}/getUpdates"
+    params = {
+        "offset": last_update_id + 1,
+        "timeout": 30
+    }
     
-    code_id = context.args[0]
-    
-    if user_id not in user_purchases or code_id not in user_purchases[user_id]:
-        await update.message.reply_text("❌ You don't own this code. Use /buy to purchase it!")
-        return
-    
-    code_info = PYTHON_CODES[code_id]
-    
-    await update.message.reply_text(
-        f"📦 **{code_info['name']}**\n\n```python\n{code_info['code']}\n```",
-        parse_mode='Markdown'
-    )
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show help message"""
-    help_text = """
-🤖 **Bot Commands:**
-
-/start - Welcome message
-/catalog - Browse all codes
-/buy [number] - Purchase a code
-/mycodes - View your purchased codes
-/resend [number] - Get a purchased code again
-/help - Show this help message
-
-💳 **Payment:**
-All codes cost **999 Telegram Stars**
-You can buy Stars in the Telegram app
-
-📧 **Support:**
-If you have any issues, contact @YourUsername
-"""
-    await update.message.reply_text(help_text, parse_mode='Markdown')
+    try:
+        response = requests.get(url, params=params, timeout=35)
+        data = response.json()
+        
+        if data.get("ok") and data.get("result"):
+            for update in data["result"]:
+                last_update_id = update["update_id"]
+                process_update(update)
+        
+        return True
+    except Exception as e:
+        print(f"Error getting updates: {e}")
+        return False
 
 
 def main():
-    """Start the bot"""
-    # Create application with Python 3.13 compatibility
-    app = (
-        Application.builder()
-        .token(BOT_TOKEN)
-        .build()
-    )
-    
-    # Add handlers
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("catalog", catalog))
-    app.add_handler(CommandHandler("buy", buy_command))
-    app.add_handler(CommandHandler("mycodes", my_codes))
-    app.add_handler(CommandHandler("resend", resend_code))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CallbackQueryHandler(button_callback))
-    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
-    
-    # Start bot
+    """Main bot loop"""
     print("🤖 Bot is running...")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    print(f"Bot Token: {BOT_TOKEN[:10]}...")
+    
+    while True:
+        try:
+            get_updates()
+            time.sleep(1)
+        except KeyboardInterrupt:
+            print("\n👋 Bot stopped")
+            break
+        except Exception as e:
+            print(f"Error: {e}")
+            time.sleep(5)
 
 
 if __name__ == "__main__":
