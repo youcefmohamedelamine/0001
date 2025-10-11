@@ -9,7 +9,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, PreC
 import re
 
 # Your Bot Token from BotFather
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = "7580086418:AAGi6mVgzONAl1koEbXfk13eDYTzCeMdDWg"
 
 # Price in Telegram Stars (1 Star = 1 unit)
 PRICE_PER_CODE = 999
