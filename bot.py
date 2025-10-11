@@ -1,11 +1,15 @@
 """
 Telegram Bot - Sell Python Codes for Stars
-Enhanced version with inline buttons
+Enhanced version with PostgreSQL Database
 """
 
 import requests
 import time
 import json
+from datetime import datetime
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 # ============================================
 # Configuration
@@ -13,6 +17,243 @@ import json
 BOT_TOKEN = "7580086418:AAGi6mVgzONAl1koEbXfk13eDYTzCeMdDWg"
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 PRICE_PER_CODE = 999
+
+# Database connection from Railway environment variable
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# ============================================
+# Database Functions
+# ============================================
+
+def get_db_connection():
+    """Create database connection"""
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        print(f"❌ Database connection error: {e}")
+        return None
+
+
+def init_database():
+    """Initialize database tables"""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    
+    try:
+        cur = conn.cursor()
+        
+        # Create users table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id BIGINT PRIMARY KEY,
+                username VARCHAR(255),
+                first_name VARCHAR(255),
+                last_name VARCHAR(255),
+                join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Create purchases table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS purchases (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT REFERENCES users(user_id),
+                code_id VARCHAR(10),
+                purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                price INTEGER,
+                UNIQUE(user_id, code_id)
+            )
+        """)
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("✅ Database initialized successfully")
+        return True
+    except Exception as e:
+        print(f"❌ Database initialization error: {e}")
+        if conn:
+            conn.close()
+        return False
+
+
+def save_user(user_id, username, first_name, last_name):
+    """Save or update user information"""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    
+    try:
+        cur = conn.cursor()
+        
+        # Insert or update user
+        cur.execute("""
+            INSERT INTO users (user_id, username, first_name, last_name, join_date, last_activity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (user_id) 
+            DO UPDATE SET 
+                username = EXCLUDED.username,
+                first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name,
+                last_activity = EXCLUDED.last_activity
+        """, (user_id, username, first_name, last_name, datetime.now(), datetime.now()))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"❌ Error saving user: {e}")
+        if conn:
+            conn.close()
+        return False
+
+
+def get_user(user_id):
+    """Get user information"""
+    conn = get_db_connection()
+    if not conn:
+        return None
+    
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+        return user
+    except Exception as e:
+        print(f"❌ Error getting user: {e}")
+        if conn:
+            conn.close()
+        return None
+
+
+def save_purchase(user_id, code_id, price):
+    """Save purchase"""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO purchases (user_id, code_id, price)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (user_id, code_id) DO NOTHING
+        """, (user_id, code_id, price))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"❌ Error saving purchase: {e}")
+        if conn:
+            conn.close()
+        return False
+
+
+def get_user_purchases(user_id):
+    """Get all purchases for a user"""
+    conn = get_db_connection()
+    if not conn:
+        return []
+    
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM purchases WHERE user_id = %s", (user_id,))
+        purchases = cur.fetchall()
+        cur.close()
+        conn.close()
+        return [p['code_id'] for p in purchases]
+    except Exception as e:
+        print(f"❌ Error getting purchases: {e}")
+        if conn:
+            conn.close()
+        return []
+
+
+def check_purchase(user_id, code_id):
+    """Check if user purchased a code"""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT COUNT(*) FROM purchases 
+            WHERE user_id = %s AND code_id = %s
+        """, (user_id, code_id))
+        count = cur.fetchone()[0]
+        cur.close()
+        conn.close()
+        return count > 0
+    except Exception as e:
+        print(f"❌ Error checking purchase: {e}")
+        if conn:
+            conn.close()
+        return False
+
+
+def get_all_users():
+    """Get all users (for admin)"""
+    conn = get_db_connection()
+    if not conn:
+        return []
+    
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM users ORDER BY join_date DESC")
+        users = cur.fetchall()
+        cur.close()
+        conn.close()
+        return users
+    except Exception as e:
+        print(f"❌ Error getting all users: {e}")
+        if conn:
+            conn.close()
+        return []
+
+
+def get_stats():
+    """Get bot statistics"""
+    conn = get_db_connection()
+    if not conn:
+        return None
+    
+    try:
+        cur = conn.cursor()
+        
+        # Total users
+        cur.execute("SELECT COUNT(*) FROM users")
+        total_users = cur.fetchone()[0]
+        
+        # Total purchases
+        cur.execute("SELECT COUNT(*) FROM purchases")
+        total_purchases = cur.fetchone()[0]
+        
+        # Total revenue
+        cur.execute("SELECT SUM(price) FROM purchases")
+        total_revenue = cur.fetchone()[0] or 0
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            "total_users": total_users,
+            "total_purchases": total_purchases,
+            "total_revenue": total_revenue
+        }
+    except Exception as e:
+        print(f"❌ Error getting stats: {e}")
+        if conn:
+            conn.close()
+        return None
 
 # ============================================
 # Python Codes Collection
@@ -156,7 +397,6 @@ print(f"Vowels in '{text}': {count_vowels(text)}")"""
 # ============================================
 # Storage
 # ============================================
-purchases = {}
 last_update_id = 0
 
 # ============================================
@@ -249,14 +489,36 @@ def answer_pre_checkout(pre_checkout_id, ok=True):
     except:
         pass
 
+
+def extract_user_info(user_data):
+    """Extract user information from message"""
+    user_id = user_data.get("id")
+    username = user_data.get("username", "")
+    first_name = user_data.get("first_name", "")
+    last_name = user_data.get("last_name", "")
+    
+    return user_id, username, first_name, last_name
+
 # ============================================
 # Command Handlers
 # ============================================
 
-def handle_start(chat_id):
+def handle_start(chat_id, user_data):
     """Handle /start command"""
-    text = """
+    # Save user info
+    user_id, username, first_name, last_name = extract_user_info(user_data)
+    save_user(user_id, username, first_name, last_name)
+    
+    # Get user info from database
+    user = get_user(user_id)
+    
+    text = f"""
 🎉 *مرحباً بك في متجر أكواد Python!*
+
+👤 *معلوماتك:*
+• الاسم: {first_name} {last_name}
+• المعرف: @{username if username else 'غير متوفر'}
+• تاريخ الانضمام: {user['join_date'].strftime('%Y-%m-%d %H:%M') if user else 'الآن'}
 
 اشترِ أكواد برمجية بسيطة ومفيدة مقابل *999 نجمة تيليجرام* ⭐ لكل كود!
 
@@ -307,7 +569,7 @@ def handle_view_code(chat_id, message_id, code_id):
         return
     
     code = CODES[code_id]
-    owned = chat_id in purchases and code_id in purchases[chat_id]
+    owned = check_purchase(chat_id, code_id)
     
     text = f"""
 {code['emoji']} *{code['name']}*
@@ -347,7 +609,7 @@ def handle_buy(chat_id, code_id, callback_id):
         return
     
     # Check if already purchased
-    if chat_id in purchases and code_id in purchases[chat_id]:
+    if check_purchase(chat_id, code_id):
         answer_callback(callback_id, "✅ أنت تملك هذا الكود بالفعل!")
         return
     
@@ -362,7 +624,7 @@ def handle_buy(chat_id, code_id, callback_id):
 
 def handle_show_code(chat_id, code_id):
     """Send code to user"""
-    if chat_id not in purchases or code_id not in purchases[chat_id]:
+    if not check_purchase(chat_id, code_id):
         send_message(chat_id, "❌ أنت لا تملك هذا الكود!")
         return
     
@@ -383,7 +645,9 @@ def handle_show_code(chat_id, code_id):
 
 def handle_mycodes(chat_id, message_id=None):
     """Show user's purchased codes"""
-    if chat_id not in purchases or not purchases[chat_id]:
+    purchased_codes = get_user_purchases(chat_id)
+    
+    if not purchased_codes:
         text = "📭 *ليس لديك أي أكواد محفوظة بعد.*\n\nاضغط على الزر أدناه لشراء أكواد جديدة!"
         keyboard = {
             "inline_keyboard": [
@@ -396,17 +660,18 @@ def handle_mycodes(chat_id, message_id=None):
         
         keyboard = {"inline_keyboard": []}
         
-        for code_id in purchases[chat_id]:
-            code = CODES[code_id]
-            text += f"✅ {code['emoji']} {code['name']}\n"
-            
-            button = {
-                "text": f"📥 {code['emoji']} {code['name']}",
-                "callback_data": f"show_{code_id}"
-            }
-            keyboard["inline_keyboard"].append([button])
+        for code_id in purchased_codes:
+            if code_id in CODES:
+                code = CODES[code_id]
+                text += f"✅ {code['emoji']} {code['name']}\n"
+                
+                button = {
+                    "text": f"📥 {code['emoji']} {code['name']}",
+                    "callback_data": f"show_{code_id}"
+                }
+                keyboard["inline_keyboard"].append([button])
         
-        text += f"\n💰 *إجمالي الأكواد:* {len(purchases[chat_id])}"
+        text += f"\n💰 *إجمالي الأكواد:* {len(purchased_codes)}"
         
         keyboard["inline_keyboard"].append([
             {"text": "🛍️ شراء المزيد", "callback_data": "show_catalog"},
@@ -419,17 +684,17 @@ def handle_mycodes(chat_id, message_id=None):
         send_message(chat_id, text, keyboard)
 
 
-def handle_successful_payment(chat_id, payload):
+def handle_successful_payment(chat_id, payload, user_data):
     """Handle successful payment"""
     parts = payload.split("_")
     code_id = parts[1]
     
-    # Store purchase
-    if chat_id not in purchases:
-        purchases[chat_id] = []
+    # Save purchase
+    save_purchase(chat_id, code_id, PRICE_PER_CODE)
     
-    if code_id not in purchases[chat_id]:
-        purchases[chat_id].append(code_id)
+    # Update user activity
+    user_id, username, first_name, last_name = extract_user_info(user_data)
+    save_user(user_id, username, first_name, last_name)
     
     # Send success message
     code = CODES[code_id]
@@ -451,6 +716,27 @@ def handle_successful_payment(chat_id, payload):
 """
     send_message(chat_id, text)
 
+
+def handle_stats(chat_id):
+    """Show statistics (admin only)"""
+    stats = get_stats()
+    
+    if not stats:
+        send_message(chat_id, "❌ حدث خطأ في جلب الإحصائيات")
+        return
+    
+    text = f"""
+📊 *إحصائيات البوت*
+
+👥 *عدد المستخدمين:* {stats['total_users']}
+🛒 *عدد المشتريات:* {stats['total_purchases']}
+💰 *إجمالي الإيرادات:* {stats['total_revenue']} ⭐
+
+📅 *تاريخ اليوم:* {datetime.now().strftime('%Y-%m-%d %H:%M')}
+"""
+    
+    send_message(chat_id, text)
+
 # ============================================
 # Update Processing
 # ============================================
@@ -465,6 +751,11 @@ def process_update(update):
         message_id = query["message"]["message_id"]
         callback_id = query["id"]
         data = query["data"]
+        user_data = query["from"]
+        
+        # Update user activity
+        user_id, username, first_name, last_name = extract_user_info(user_data)
+        save_user(user_id, username, first_name, last_name)
         
         answer_callback(callback_id)
         
@@ -475,7 +766,7 @@ def process_update(update):
             handle_mycodes(chat_id, message_id)
         
         elif data == "back_to_start":
-            handle_start(chat_id)
+            handle_start(chat_id, user_data)
         
         elif data.startswith("view_"):
             code_id = data.split("_")[1]
@@ -495,11 +786,12 @@ def process_update(update):
     if "message" in update:
         message = update["message"]
         chat_id = message["chat"]["id"]
+        user_data = message["from"]
         
         # Handle successful payment
         if "successful_payment" in message:
             payload = message["successful_payment"]["invoice_payload"]
-            handle_successful_payment(chat_id, payload)
+            handle_successful_payment(chat_id, payload, user_data)
             return
         
         # Handle text commands
@@ -507,7 +799,7 @@ def process_update(update):
             text = message["text"]
             
             if text == "/start":
-                handle_start(chat_id)
+                handle_start(chat_id, user_data)
             
             elif text == "/catalog":
                 handle_catalog(chat_id)
@@ -515,8 +807,11 @@ def process_update(update):
             elif text == "/mycodes":
                 handle_mycodes(chat_id)
             
+            elif text == "/stats":
+                handle_stats(chat_id)
+            
             elif text == "/help":
-                handle_start(chat_id)
+                handle_start(chat_id, user_data)
     
     # Handle pre-checkout query
     elif "pre_checkout_query" in update:
@@ -555,7 +850,15 @@ def get_updates():
 def main():
     """Main bot loop"""
     print("=" * 50)
-    print("🤖 البوت يعمل الآن...")
+    print("🤖 جاري تشغيل البوت...")
+    print("=" * 50)
+    
+    # Initialize database
+    if not init_database():
+        print("❌ فشل في تهيئة قاعدة البيانات!")
+        return
+    
+    print("✅ قاعدة البيانات جاهزة")
     print(f"💳 السعر لكل كود: {PRICE_PER_CODE} نجمة ⭐")
     print(f"📦 عدد الأكواد المتاحة: {len(CODES)}")
     print("=" * 50)
