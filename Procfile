@@ -1,2 +1,2 @@
-web: python web_dashboard.py
-worker: python bot.py
+worker: python web_dashboard.py
+web: python bot.py
