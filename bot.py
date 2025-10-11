@@ -1,14 +1,15 @@
 """
 Telegram Bot - Sell Python Codes for Stars
 This bot sells 10 different Python code examples for 999 Telegram Stars each
+Fixed for Python 3.13 compatibility
 """
 
 from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, PreCheckoutQueryHandler, MessageHandler, filters, ContextTypes
-import json
+import re
 
 # Your Bot Token from BotFather
-BOT_TOKEN = "7580086418:AAGi6mVgzONAl1koEbXfk13eDYTzCeMdDWg"
+BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
 
 # Price in Telegram Stars (1 Star = 1 unit)
 PRICE_PER_CODE = 999
@@ -80,7 +81,7 @@ create_qr_code("https://example.com")"""
         "code": """import re
 
 def validate_email(email):
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
     
     if re.match(pattern, email):
         return True
@@ -434,8 +435,12 @@ If you have any issues, contact @YourUsername
 
 def main():
     """Start the bot"""
-    # Create application
-    app = Application.builder().token(BOT_TOKEN).build()
+    # Create application with Python 3.13 compatibility
+    app = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .build()
+    )
     
     # Add handlers
     app.add_handler(CommandHandler("start", start))
@@ -450,7 +455,7 @@ def main():
     
     # Start bot
     print("🤖 Bot is running...")
-    app.run_polling()
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":
