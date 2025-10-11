@@ -10,7 +10,7 @@ from datetime import datetime
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-
+from stats_manager import StatsManager
 # ============================================
 # Configuration
 # ============================================
@@ -20,6 +20,7 @@ PRICE_PER_CODE = 999
 
 # Database connection from Railway environment variable
 DATABASE_URL = os.getenv("DATABASE_URL")
+stats_manager = StatsManager(DATABASE_URL)
 
 # ============================================
 # Database Functions
@@ -857,7 +858,7 @@ def main():
     if not init_database():
         print("❌ فشل في تهيئة قاعدة البيانات!")
         return
-    
+    stats_manager.start_web_dashboard(port=5000, threaded=True)
     print("✅ قاعدة البيانات جاهزة")
     print(f"💳 السعر لكل كود: {PRICE_PER_CODE} نجمة ⭐")
     print(f"📦 عدد الأكواد المتاحة: {len(CODES)}")
