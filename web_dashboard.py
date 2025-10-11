@@ -1,38 +1,101 @@
-"""
-Web Dashboard - Combined Landing Page + Statistics
-Beautiful design with REAL data from PostgreSQL Database
-"""
-
-from flask import Flask, render_template_string, jsonify
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from flask import Flask, jsonify, render_template_string
+import threading
 import os
 from datetime import datetime
-
-# ============================================
-# Configuration
-# ============================================
-app = Flask(__name__)
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-# ============================================
-# Database Functions
-# ============================================
-
-def get_db_connection():
-    """Create database connection"""
-    try:
-        conn = psycopg2.connect(DATABASE_URL)
-        return conn
-    except Exception as e:
-        print(f"❌ Database connection error: {e}")
-        return None
-
-
-def get_stats():
-    """Get bot statistics"""
-    conn = get_db_connection()
-    if not conn:
+class StatsManager:
+    """
+    كلاس شامل لإدارة الإحصائيات وعرضها عبر الويب
+    """
+    
+    def __init__(self, database_url):
+        """
+        تهيئة الكلاس
+        
+        Args:
+            database_url (str): رابط قاعدة البيانات PostgreSQL
+        """
+        self.database_url = database_url
+        self.flask_app = None
+        self._init_flask_app()
+    # ============================================
+    # Database Methods
+    # ============================================
+    def _get_connection(self):
+        """إنشاء اتصال بقاعدة البيانات"""
+        try:
+            conn = psycopg2.connect(self.database_url)
+            return conn
+        except Exception as e:
+            print(f"❌ خطأ في الاتصال بقاعدة البيانات: {e}")
+            return None
+    
+    def get_stats(self):
+        """
+        جلب الإحصائيات الكاملة
+        
+        Returns:
+            dict: قاموس يحتوي على جميع الإحصائيات
+        """
+        conn = self._get_connection()
+        if not conn:
+            return self._empty_stats()
+        
+        try:
+            cur = conn.cursor()
+            
+            # إجمالي المستخدمين
+            cur.execute("SELECT COUNT(*) FROM users")
+            total_users = cur.fetchone()[0]
+            
+            # إجمالي المشتريات
+            cur.execute("SELECT COUNT(*) FROM purchases")
+            total_purchases = cur.fetchone()[0]
+            
+            # إجمالي الإيرادات
+            cur.execute("SELECT SUM(price) FROM purchases")
+            total_revenue = cur.fetchone()[0] or 0
+            
+            # مستخدمين اليوم
+            cur.execute("""
+                SELECT COUNT(*) FROM users 
+                WHERE DATE(join_date) = CURRENT_DATE
+            """)
+            users_today = cur.fetchone()[0]
+            
+            # مشتريات اليوم
+            cur.execute("""
+                SELECT COUNT(*) FROM purchases 
+                WHERE DATE(purchase_date) = CURRENT_DATE
+            """)
+            purchases_today = cur.fetchone()[0]
+            
+            # إيرادات اليوم
+            cur.execute("""
+                SELECT SUM(price) FROM purchases 
+                WHERE DATE(purchase_date) = CURRENT_DATE
+            """)
+            revenue_today = cur.fetchone()[0] or 0
+            
+            cur.close()
+            conn.close()
+            
+            return {
+                "total_users": total_users,
+                "total_purchases": total_purchases,
+                "total_revenue": total_revenue,
+                "users_today": users_today,
+                "purchases_today": purchases_today,
+                "revenue_today": revenue_today
+            }
+        except Exception as e:
+            print(f"❌ خطأ في جلب الإحصائيات: {e}")
+            if conn:
+                conn.close()
+            return self._empty_stats()
+    
+    def _empty_stats(self):
+        """إرجاع إحصائيات فارغة في حالة الخطأ"""
         return {
             "total_users": 0,
             "total_purchases": 0,
@@ -42,71 +105,83 @@ def get_stats():
             "revenue_today": 0
         }
     
-    try:
-        cur = conn.cursor()
+    def check_db_health(self):
+        """
+        فحص صحة قاعدة البيانات
         
-        # Total users
-        cur.execute("SELECT COUNT(*) FROM users")
-        total_users = cur.fetchone()[0]
-        
-        # Total purchases
-        cur.execute("SELECT COUNT(*) FROM purchases")
-        total_purchases = cur.fetchone()[0]
-        
-        # Total revenue
-        cur.execute("SELECT SUM(price) FROM purchases")
-        total_revenue = cur.fetchone()[0] or 0
-        
-        # Users joined today
-        cur.execute("""
-            SELECT COUNT(*) FROM users 
-            WHERE DATE(join_date) = CURRENT_DATE
-        """)
-        users_today = cur.fetchone()[0]
-        
-        # Purchases today
-        cur.execute("""
-            SELECT COUNT(*) FROM purchases 
-            WHERE DATE(purchase_date) = CURRENT_DATE
-        """)
-        purchases_today = cur.fetchone()[0]
-        
-        # Revenue today
-        cur.execute("""
-            SELECT SUM(price) FROM purchases 
-            WHERE DATE(purchase_date) = CURRENT_DATE
-        """)
-        revenue_today = cur.fetchone()[0] or 0
-        
-        cur.close()
-        conn.close()
-        
-        return {
-            "total_users": total_users,
-            "total_purchases": total_purchases,
-            "total_revenue": total_revenue,
-            "users_today": users_today,
-            "purchases_today": purchases_today,
-            "revenue_today": revenue_today
-        }
-    except Exception as e:
-        print(f"❌ Error getting stats: {e}")
+        Returns:
+            bool: True إذا كانت قاعدة البيانات تعمل
+        """
+        conn = self._get_connection()
         if conn:
             conn.close()
-        return {
-            "total_users": 0,
-            "total_purchases": 0,
-            "total_revenue": 0,
-            "users_today": 0,
-            "purchases_today": 0,
-            "revenue_today": 0
-        }
-
-# ============================================
-# HTML Template - Beautiful Landing + Real Data
-# ============================================
-
-HTML_TEMPLATE = """
+            return True
+        return False
+    
+    # ============================================
+    # Flask Web Dashboard
+    # ============================================
+    
+    def _init_flask_app(self):
+        """تهيئة تطبيق Flask"""
+        self.flask_app = Flask(__name__)
+        self._setup_routes()
+    
+    def _setup_routes(self):
+        """إعداد مسارات Flask"""
+        
+        @self.flask_app.route('/')
+        def main_page():
+            stats = self.get_stats()
+            return render_template_string(self._get_html_template(), stats=stats)
+        
+        @self.flask_app.route('/api/stats')
+        def api_stats():
+            stats = self.get_stats()
+            return jsonify(stats)
+        
+        @self.flask_app.route('/health')
+        def health_check():
+            if self.check_db_health():
+                return jsonify({"status": "healthy", "database": "connected"}), 200
+            return jsonify({"status": "unhealthy", "database": "disconnected"}), 503
+    
+    def start_web_dashboard(self, host='0.0.0.0', port=5000, debug=False, threaded=True):
+        """
+        تشغيل لوحة التحكم على الويب
+        
+        Args:
+            host (str): عنوان الاستضافة
+            port (int): رقم المنفذ
+            debug (bool): وضع التطوير
+            threaded (bool): True لتشغيله في thread منفصل (لا يوقف البوت)
+        """
+        if threaded:
+            thread = threading.Thread(
+                target=self._run_flask,
+                args=(host, port, debug),
+                daemon=True
+            )
+            thread.start()
+            print(f"✅ لوحة التحكم تعمل في الخلفية على: http://{host}:{port}")
+        else:
+            self._run_flask(host, port, debug)
+    
+    def _run_flask(self, host, port, debug):
+        """تشغيل Flask"""
+        print("=" * 50)
+        print("🌐 جاري تشغيل لوحة التحكم...")
+        print(f"🔗 الرابط: http://{host}:{port}")
+        print("=" * 50)
+        self.flask_app.run(host=host, port=port, debug=debug)
+    
+    # ============================================
+    # HTML Template - Beautiful Landing Page
+    # ============================================
+    
+    def _get_html_template(self):
+        """قالب HTML الكامل للصفحة الرئيسية"""
+        return """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -114,12 +189,8 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متجر أكواد Python - بوت تيليجرام</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -127,39 +198,26 @@ HTML_TEMPLATE = """
             color: #333;
             overflow-x: hidden;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
         header {
             text-align: center;
             padding: 60px 20px 40px;
             color: white;
             animation: fadeInDown 1s ease;
         }
-
-        .logo {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
-
+        
+        .logo { font-size: 80px; margin-bottom: 20px; animation: bounce 2s infinite; }
+        
         h1 {
             font-size: 3rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
-        .subtitle {
-            font-size: 1.3rem;
-            opacity: 0.9;
-            margin-bottom: 30px;
-        }
-
+        
+        .subtitle { font-size: 1.3rem; opacity: 0.9; margin-bottom: 30px; }
+        
         .cta-button {
             display: inline-block;
             background: linear-gradient(45deg, #FFD700, #FFA500);
@@ -173,13 +231,12 @@ HTML_TEMPLATE = """
             transition: all 0.3s ease;
             margin-top: 20px;
         }
-
+        
         .cta-button:hover {
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
-
-        /* Live Stats Banner */
+        
         .live-stats {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 30px;
@@ -188,7 +245,7 @@ HTML_TEMPLATE = """
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
             animation: fadeInUp 1s ease;
         }
-
+        
         .stats-title {
             text-align: center;
             font-size: 2rem;
@@ -199,7 +256,7 @@ HTML_TEMPLATE = """
             justify-content: center;
             gap: 10px;
         }
-
+        
         .pulse-dot {
             width: 12px;
             height: 12px;
@@ -207,18 +264,18 @@ HTML_TEMPLATE = """
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
-
+        
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(1.2); }
         }
-
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
-
+        
         .stat-box {
             text-align: center;
             padding: 25px;
@@ -227,27 +284,12 @@ HTML_TEMPLATE = """
             color: white;
             transition: transform 0.3s ease;
         }
-
-        .stat-box:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
+        
+        .stat-box:hover { transform: translateY(-5px); }
+        .stat-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .stat-number { font-size: 2.5rem; font-weight: bold; margin: 10px 0; }
+        .stat-label { font-size: 1rem; opacity: 0.9; }
+        
         .stat-today {
             font-size: 0.85rem;
             margin-top: 5px;
@@ -257,8 +299,7 @@ HTML_TEMPLATE = """
             border-radius: 15px;
             display: inline-block;
         }
-
-        /* Features Section */
+        
         .features {
             background: white;
             border-radius: 30px;
@@ -267,21 +308,21 @@ HTML_TEMPLATE = """
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
             animation: fadeInUp 1s ease;
         }
-
+        
         .section-title {
             text-align: center;
             font-size: 2.5rem;
             color: #667eea;
             margin-bottom: 50px;
         }
-
+        
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
-
+        
         .feature-card {
             text-align: center;
             padding: 30px;
@@ -290,29 +331,16 @@ HTML_TEMPLATE = """
             transition: all 0.3s ease;
             cursor: pointer;
         }
-
+        
         .feature-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
         }
-
-        .feature-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
-
-        .feature-title {
-            font-size: 1.4rem;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .feature-desc {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        /* Codes Section */
+        
+        .feature-icon { font-size: 4rem; margin-bottom: 20px; }
+        .feature-title { font-size: 1.4rem; color: #667eea; margin-bottom: 10px; }
+        .feature-desc { color: #666; line-height: 1.6; }
+        
         .codes-section {
             background: white;
             border-radius: 30px;
@@ -320,14 +348,14 @@ HTML_TEMPLATE = """
             margin: 40px 0;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
         }
-
+        
         .codes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
             margin-top: 40px;
         }
-
+        
         .code-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 30px;
@@ -337,7 +365,7 @@ HTML_TEMPLATE = """
             position: relative;
             overflow: hidden;
         }
-
+        
         .code-card::before {
             content: '';
             position: absolute;
@@ -348,33 +376,18 @@ HTML_TEMPLATE = """
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
             transition: all 0.5s ease;
         }
-
-        .code-card:hover::before {
-            transform: translate(-25%, -25%);
-        }
-
+        
+        .code-card:hover::before { transform: translate(-25%, -25%); }
+        
         .code-card:hover {
             transform: translateY(-10px) scale(1.02);
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
-
-        .code-emoji {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-
-        .code-name {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .code-desc {
-            opacity: 0.9;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
+        
+        .code-emoji { font-size: 3rem; margin-bottom: 15px; }
+        .code-name { font-size: 1.5rem; margin-bottom: 10px; font-weight: bold; }
+        .code-desc { opacity: 0.9; margin-bottom: 20px; line-height: 1.5; }
+        
         .price-tag {
             display: inline-flex;
             align-items: center;
@@ -386,14 +399,13 @@ HTML_TEMPLATE = """
             font-size: 1.2rem;
             gap: 8px;
         }
-
-        /* Pricing Section */
+        
         .pricing {
             text-align: center;
             padding: 60px 20px;
             color: white;
         }
-
+        
         .price-box {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -404,55 +416,32 @@ HTML_TEMPLATE = """
             margin: 30px auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
         }
-
-        .price-amount {
-            font-size: 4rem;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-
-        .price-per {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        /* Footer */
+        
+        .price-amount { font-size: 4rem; font-weight: bold; margin: 20px 0; }
+        .price-per { font-size: 1.2rem; opacity: 0.9; }
+        
         footer {
             text-align: center;
             padding: 40px 20px;
             color: white;
             opacity: 0.8;
         }
-
-        /* Animations */
+        
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
+        
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
+        
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
         }
-
-        /* Stars Animation */
+        
         .stars {
             position: fixed;
             top: 0;
@@ -462,40 +451,19 @@ HTML_TEMPLATE = """
             pointer-events: none;
             z-index: -1;
         }
-
+        
         .star {
             position: absolute;
             color: gold;
             font-size: 20px;
             animation: twinkle 3s infinite;
         }
-
+        
         @keyframes twinkle {
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            .subtitle { font-size: 1rem; }
-            .section-title { font-size: 1.8rem; }
-            .price-amount { font-size: 3rem; }
-            .codes-grid, .features-grid, .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Telegram Icon */
-        .telegram-icon {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            vertical-align: middle;
-            margin-left: 10px;
-        }
-
-        /* Auto refresh indicator */
+        
         .refresh-indicator {
             position: fixed;
             bottom: 20px;
@@ -508,7 +476,7 @@ HTML_TEMPLATE = """
             color: #667eea;
             z-index: 1000;
         }
-
+        
         .refresh-dot {
             display: inline-block;
             width: 8px;
@@ -518,27 +486,27 @@ HTML_TEMPLATE = """
             margin-left: 8px;
             animation: pulse 2s infinite;
         }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .subtitle { font-size: 1rem; }
+            .section-title { font-size: 1.8rem; }
+            .price-amount { font-size: 3rem; }
+            .codes-grid, .features-grid, .stats-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <!-- Animated Stars Background -->
     <div class="stars" id="stars"></div>
 
     <div class="container">
-        <!-- Header -->
         <header>
             <div class="logo">🐍</div>
             <h1>متجر أكواد Python</h1>
             <p class="subtitle">اشترِ أكواد برمجية جاهزة عبر بوت تيليجرام ⭐</p>
-            <a href="https://t.me/WinterLand_bot" class="cta-button">
-                ابدأ الآن على تيليجرام
-                <svg class="telegram-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
-                </svg>
-            </a>
+            <a href="https://t.me/WinterLand_bot" class="cta-button">ابدأ الآن على تيليجرام</a>
         </header>
 
-        <!-- Live Statistics -->
         <section class="live-stats">
             <h2 class="stats-title">
                 <span class="pulse-dot"></span>
@@ -551,14 +519,12 @@ HTML_TEMPLATE = """
                     <div class="stat-label">إجمالي المستخدمين</div>
                     <div class="stat-today">+{{ stats.users_today }} اليوم</div>
                 </div>
-
                 <div class="stat-box">
                     <div class="stat-icon">🛒</div>
                     <div class="stat-number">{{ stats.total_purchases }}</div>
                     <div class="stat-label">إجمالي المشتريات</div>
                     <div class="stat-today">+{{ stats.purchases_today }} اليوم</div>
                 </div>
-
                 <div class="stat-box">
                     <div class="stat-icon">⭐</div>
                     <div class="stat-number">{{ stats.total_revenue }}</div>
@@ -568,7 +534,6 @@ HTML_TEMPLATE = """
             </div>
         </section>
 
-        <!-- Features Section -->
         <section class="features">
             <h2 class="section-title">✨ لماذا تختارنا؟</h2>
             <div class="features-grid">
@@ -595,7 +560,6 @@ HTML_TEMPLATE = """
             </div>
         </section>
 
-        <!-- Codes Section -->
         <section class="codes-section">
             <h2 class="section-title">🛍️ الأكواد المتاحة (10 أكواد)</h2>
             <div class="codes-grid">
@@ -605,63 +569,54 @@ HTML_TEMPLATE = """
                     <p class="code-desc">تحويل بين درجات الحرارة المئوية والفهرنهايت</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">🔐</div>
                     <div class="code-name">Password Generator</div>
                     <p class="code-desc">توليد كلمات مرور عشوائية وآمنة</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">📁</div>
                     <div class="code-name">File Lister</div>
                     <p class="code-desc">عرض جميع الملفات في مجلد معين</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">📝</div>
                     <div class="code-name">Word Counter</div>
                     <p class="code-desc">حساب عدد الكلمات في أي نص</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">➕</div>
                     <div class="code-name">List Summer</div>
                     <p class="code-desc">جمع جميع الأرقام في قائمة</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">🔢</div>
                     <div class="code-name">Max Finder</div>
                     <p class="code-desc">إيجاد أكبر رقم في قائمة</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">🔄</div>
                     <div class="code-name">String Reverser</div>
                     <p class="code-desc">عكس أي نص بسهولة</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">🎯</div>
                     <div class="code-name">Even Checker</div>
                     <p class="code-desc">التحقق من الأرقام الزوجية والفردية</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">🧹</div>
                     <div class="code-name">Duplicate Remover</div>
                     <p class="code-desc">إزالة العناصر المكررة من القوائم</p>
                     <div class="price-tag">999 ⭐</div>
                 </div>
-
                 <div class="code-card">
                     <div class="code-emoji">🔤</div>
                     <div class="code-name">Vowel Counter</div>
@@ -671,7 +626,6 @@ HTML_TEMPLATE = """
             </div>
         </section>
 
-        <!-- Pricing Section -->
         <section class="pricing">
             <h2 class="section-title">💰 السعر</h2>
             <div class="price-box">
@@ -679,26 +633,21 @@ HTML_TEMPLATE = """
                 <div class="price-amount">999 ⭐</div>
                 <p class="price-per">نجمة تيليجرام فقط!</p>
             </div>
-            <a href="https://t.me/WinterLand_bot" class="cta-button">
-                اشترِ الآن
-            </a>
+            <a href="https://t.me/WinterLand_bot" class="cta-button">اشترِ الآن</a>
         </section>
 
-        <!-- Footer -->
         <footer>
             <p>© 2025 متجر أكواد Python | جميع الحقوق محفوظة</p>
             <p style="margin-top: 10px;">صُنع بـ ❤️ للمبرمجين العرب</p>
         </footer>
     </div>
 
-    <!-- Auto Refresh Indicator -->
     <div class="refresh-indicator">
         <span class="refresh-dot"></span>
         تحديث تلقائي كل 60 ثانية
     </div>
 
     <script>
-        // Create animated stars
         const starsContainer = document.getElementById('stars');
         for (let i = 0; i < 50; i++) {
             const star = document.createElement('div');
@@ -710,18 +659,6 @@ HTML_TEMPLATE = """
             starsContainer.appendChild(star);
         }
 
-        // Add smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
-
-        // Animate cards on scroll
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -734,55 +671,8 @@ HTML_TEMPLATE = """
             observer.observe(card);
         });
 
-        // Auto refresh every 60 seconds
-        setTimeout(() => {
-            location.reload();
-        }, 60000);
+        setTimeout(() => location.reload(), 60000);
     </script>
 </body>
 </html>
-"""
-
-# ============================================
-# Routes
-# ============================================
-
-@app.route('/')
-def main_page():
-    """Main page - Beautiful landing with real statistics"""
-    stats = get_stats()
-    return render_template_string(HTML_TEMPLATE, stats=stats)
-
-
-@app.route('/api/stats')
-def api_stats():
-    """API endpoint for stats (JSON)"""
-    stats = get_stats()
-    return jsonify(stats)
-
-
-@app.route('/health')
-def health_check():
-    """Health check endpoint"""
-    conn = get_db_connection()
-    if conn:
-        conn.close()
-        return jsonify({"status": "healthy", "database": "connected"}), 200
-    return jsonify({"status": "unhealthy", "database": "disconnected"}), 503
-
-# ============================================
-# Main
-# ============================================
-
-if __name__ == '__main__':
-    print("=" * 50)
-    print("🌐 جاري تشغيل الموقع...")
-    print("=" * 50)
-    print("✨ التصميم: صفحة تسويق جميلة")
-    print("📊 البيانات: حقيقية من قاعدة البيانات")
-    print("🔄 التحديث: تلقائي كل 60 ثانية")
-    print("=" * 50)
-    
-    # Run Flask app
-    port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+        """
