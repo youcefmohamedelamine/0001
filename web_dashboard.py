@@ -1,6 +1,6 @@
 """
-Web Dashboard for Telegram Bot Statistics
-Displays real-time data from PostgreSQL Database
+Web Dashboard - Combined Landing Page + Statistics
+Beautiful design with REAL data from PostgreSQL Database
 """
 
 from flask import Flask, render_template_string, jsonify
@@ -33,7 +33,14 @@ def get_stats():
     """Get bot statistics"""
     conn = get_db_connection()
     if not conn:
-        return None
+        return {
+            "total_users": 0,
+            "total_purchases": 0,
+            "total_revenue": 0,
+            "users_today": 0,
+            "purchases_today": 0,
+            "revenue_today": 0
+        }
     
     try:
         cur = conn.cursor()
@@ -49,25 +56,6 @@ def get_stats():
         # Total revenue
         cur.execute("SELECT SUM(price) FROM purchases")
         total_revenue = cur.fetchone()[0] or 0
-        
-        # Recent users (last 10)
-        cur.execute("""
-            SELECT user_id, username, first_name, last_name, join_date, last_activity
-            FROM users 
-            ORDER BY join_date DESC 
-            LIMIT 10
-        """)
-        recent_users = cur.fetchall()
-        
-        # Recent purchases (last 10)
-        cur.execute("""
-            SELECT p.id, p.user_id, u.username, u.first_name, p.code_id, p.price, p.purchase_date
-            FROM purchases p
-            JOIN users u ON p.user_id = u.user_id
-            ORDER BY p.purchase_date DESC
-            LIMIT 10
-        """)
-        recent_purchases = cur.fetchall()
         
         # Users joined today
         cur.execute("""
@@ -97,8 +85,6 @@ def get_stats():
             "total_users": total_users,
             "total_purchases": total_purchases,
             "total_revenue": total_revenue,
-            "recent_users": recent_users,
-            "recent_purchases": recent_purchases,
             "users_today": users_today,
             "purchases_today": purchases_today,
             "revenue_today": revenue_today
@@ -107,36 +93,17 @@ def get_stats():
         print(f"❌ Error getting stats: {e}")
         if conn:
             conn.close()
-        return None
-
-
-def get_all_users():
-    """Get all users"""
-    conn = get_db_connection()
-    if not conn:
-        return []
-    
-    try:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("""
-            SELECT u.*, COUNT(p.id) as total_purchases
-            FROM users u
-            LEFT JOIN purchases p ON u.user_id = p.user_id
-            GROUP BY u.user_id
-            ORDER BY u.join_date DESC
-        """)
-        users = cur.fetchall()
-        cur.close()
-        conn.close()
-        return users
-    except Exception as e:
-        print(f"❌ Error getting users: {e}")
-        if conn:
-            conn.close()
-        return []
+        return {
+            "total_users": 0,
+            "total_purchases": 0,
+            "total_revenue": 0,
+            "users_today": 0,
+            "purchases_today": 0,
+            "revenue_today": 0
+        }
 
 # ============================================
-# HTML Template
+# HTML Template - Beautiful Landing + Real Data
 # ============================================
 
 HTML_TEMPLATE = """
@@ -145,7 +112,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم البوت - إحصائيات مباشرة</title>
+    <title>متجر أكواد Python - بوت تيليجرام</title>
     <style>
         * {
             margin: 0;
@@ -157,136 +124,375 @@ HTML_TEMPLATE = """
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #333;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
+        /* Header */
         header {
             text-align: center;
+            padding: 60px 20px 40px;
             color: white;
-            padding: 40px 20px;
-            margin-bottom: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .last-update {
+        .subtitle {
+            font-size: 1.3rem;
             opacity: 0.9;
-            font-size: 0.9rem;
-            margin-top: 10px;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
             margin-bottom: 30px;
         }
 
-        .stat-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 18px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        /* Live Stats Banner */
+        .live-stats {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        .stats-title {
             text-align: center;
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
             transition: transform 0.3s ease;
         }
 
-        .stat-card:hover {
+        .stat-box:hover {
             transform: translateY(-5px);
         }
 
         .stat-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
         }
 
-        .stat-value {
+        .stat-number {
             font-size: 2.5rem;
             font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .stat-today {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            opacity: 0.8;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        /* Features Section */
+        .features {
+            background: white;
+            border-radius: 30px;
+            padding: 60px 40px;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
             color: #667eea;
             margin-bottom: 10px;
         }
 
-        .stat-label {
+        .feature-desc {
             color: #666;
-            font-size: 1.1rem;
+            line-height: 1.6;
         }
 
-        .stat-subtext {
-            color: #999;
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
-
-        /* Tables */
-        .section {
+        /* Codes Section */
+        .codes-section {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 30px;
+            padding: 60px 40px;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
         }
 
-        .section-title {
-            font-size: 1.8rem;
-            color: #667eea;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .codes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th {
+        .code-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            text-align: right;
-            font-weight: 600;
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            text-align: right;
-        }
-
-        tr:hover {
-            background: #f5f7fa;
-        }
-
-        .user-badge {
-            background: #667eea;
-            color: white;
-            padding: 5px 12px;
+            padding: 30px;
             border-radius: 20px;
-            font-size: 0.85rem;
-            display: inline-block;
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .purchase-badge {
-            background: #FFD700;
-            color: #000;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+        .code-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transition: all 0.5s ease;
+        }
+
+        .code-card:hover::before {
+            transform: translate(-25%, -25%);
+        }
+
+        .code-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .code-emoji {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .code-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
             font-weight: bold;
+        }
+
+        .code-desc {
+            opacity: 0.9;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .price-tag {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            gap: 8px;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .price-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 500px;
+            margin: 30px auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .price-amount {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .price-per {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Stars Animation */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            color: gold;
+            font-size: 20px;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .subtitle { font-size: 1rem; }
+            .section-title { font-size: 1.8rem; }
+            .price-amount { font-size: 3rem; }
+            .codes-grid, .features-grid, .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Telegram Icon */
+        .telegram-icon {
             display: inline-block;
+            width: 30px;
+            height: 30px;
+            vertical-align: middle;
+            margin-left: 10px;
         }
 
         /* Auto refresh indicator */
@@ -294,160 +500,244 @@ HTML_TEMPLATE = """
             position: fixed;
             bottom: 20px;
             left: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 15px 25px;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 20px;
             border-radius: 50px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #667eea;
+            z-index: 1000;
         }
 
         .refresh-dot {
             display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: #4CAF50;
             border-radius: 50%;
-            margin-left: 10px;
+            margin-left: 8px;
             animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; }
-            .stats-grid { grid-template-columns: 1fr; }
-            table { font-size: 0.9rem; }
-            th, td { padding: 10px; }
         }
     </style>
 </head>
 <body>
+    <!-- Animated Stars Background -->
+    <div class="stars" id="stars"></div>
+
     <div class="container">
+        <!-- Header -->
         <header>
-            <h1>📊 لوحة تحكم بوت متجر الأكواد</h1>
-            <p>إحصائيات وبيانات مباشرة</p>
-            <p class="last-update" id="lastUpdate">آخر تحديث: جاري التحميل...</p>
+            <div class="logo">🐍</div>
+            <h1>متجر أكواد Python</h1>
+            <p class="subtitle">اشترِ أكواد برمجية جاهزة عبر بوت تيليجرام ⭐</p>
+            <a href="https://t.me/WinterLand_bot" class="cta-button">
+                ابدأ الآن على تيليجرام
+                <svg class="telegram-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                </svg>
+            </a>
         </header>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-value" id="totalUsers">{{ stats.total_users }}</div>
-                <div class="stat-label">إجمالي المستخدمين</div>
-                <div class="stat-subtext">+{{ stats.users_today }} اليوم</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">🛒</div>
-                <div class="stat-value" id="totalPurchases">{{ stats.total_purchases }}</div>
-                <div class="stat-label">إجمالي المشتريات</div>
-                <div class="stat-subtext">+{{ stats.purchases_today }} اليوم</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">⭐</div>
-                <div class="stat-value" id="totalRevenue">{{ stats.total_revenue }}</div>
-                <div class="stat-label">إجمالي النجوم</div>
-                <div class="stat-subtext">+{{ stats.revenue_today }} اليوم</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-value">{{ "%.1f"|format((stats.total_purchases / stats.total_users * 100) if stats.total_users > 0 else 0) }}%</div>
-                <div class="stat-label">معدل التحويل</div>
-                <div class="stat-subtext">مشتريات/مستخدمين</div>
-            </div>
-        </div>
-
-        <!-- Recent Users -->
-        <div class="section">
-            <h2 class="section-title">
-                <span>👥</span>
-                أحدث المستخدمين
+        <!-- Live Statistics -->
+        <section class="live-stats">
+            <h2 class="stats-title">
+                <span class="pulse-dot"></span>
+                📊 إحصائيات مباشرة
             </h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>المعرف</th>
-                        <th>الاسم</th>
-                        <th>اسم المستخدم</th>
-                        <th>تاريخ الانضمام</th>
-                        <th>آخر نشاط</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in stats.recent_users %}
-                    <tr>
-                        <td><span class="user-badge">{{ user[0] }}</span></td>
-                        <td>{{ user[2] }} {{ user[3] or '' }}</td>
-                        <td>@{{ user[1] or 'غير متوفر' }}</td>
-                        <td>{{ user[4].strftime('%Y-%m-%d %H:%M') if user[4] else '-' }}</td>
-                        <td>{{ user[5].strftime('%Y-%m-%d %H:%M') if user[5] else '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number">{{ stats.total_users }}</div>
+                    <div class="stat-label">إجمالي المستخدمين</div>
+                    <div class="stat-today">+{{ stats.users_today }} اليوم</div>
+                </div>
 
-        <!-- Recent Purchases -->
-        <div class="section">
-            <h2 class="section-title">
-                <span>🛒</span>
-                أحدث المشتريات
-            </h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>المستخدم</th>
-                        <th>اسم المستخدم</th>
-                        <th>الكود</th>
-                        <th>السعر</th>
-                        <th>التاريخ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for purchase in stats.recent_purchases %}
-                    <tr>
-                        <td>{{ purchase[0] }}</td>
-                        <td>{{ purchase[3] }}</td>
-                        <td>@{{ purchase[2] or 'غير متوفر' }}</td>
-                        <td><span class="purchase-badge">كود #{{ purchase[4] }}</span></td>
-                        <td>{{ purchase[5] }} ⭐</td>
-                        <td>{{ purchase[6].strftime('%Y-%m-%d %H:%M') if purchase[6] else '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                <div class="stat-box">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-number">{{ stats.total_purchases }}</div>
+                    <div class="stat-label">إجمالي المشتريات</div>
+                    <div class="stat-today">+{{ stats.purchases_today }} اليوم</div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-number">{{ stats.total_revenue }}</div>
+                    <div class="stat-label">إجمالي النجوم</div>
+                    <div class="stat-today">+{{ stats.revenue_today }} اليوم</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features">
+            <h2 class="section-title">✨ لماذا تختارنا؟</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">سريع وسهل</h3>
+                    <p class="feature-desc">احصل على الكود فوراً بعد الدفع مباشرة</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">آمن 100%</h3>
+                    <p class="feature-desc">الدفع عبر نظام نجوم تيليجرام الآمن</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💎</div>
+                    <h3 class="feature-title">جودة عالية</h3>
+                    <p class="feature-desc">أكواد مختبرة وجاهزة للاستخدام</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">داخل تيليجرام</h3>
+                    <p class="feature-desc">لا حاجة لتطبيقات خارجية</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Codes Section -->
+        <section class="codes-section">
+            <h2 class="section-title">🛍️ الأكواد المتاحة (10 أكواد)</h2>
+            <div class="codes-grid">
+                <div class="code-card">
+                    <div class="code-emoji">🌡️</div>
+                    <div class="code-name">Temperature Converter</div>
+                    <p class="code-desc">تحويل بين درجات الحرارة المئوية والفهرنهايت</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔐</div>
+                    <div class="code-name">Password Generator</div>
+                    <p class="code-desc">توليد كلمات مرور عشوائية وآمنة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">📁</div>
+                    <div class="code-name">File Lister</div>
+                    <p class="code-desc">عرض جميع الملفات في مجلد معين</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">📝</div>
+                    <div class="code-name">Word Counter</div>
+                    <p class="code-desc">حساب عدد الكلمات في أي نص</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">➕</div>
+                    <div class="code-name">List Summer</div>
+                    <p class="code-desc">جمع جميع الأرقام في قائمة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔢</div>
+                    <div class="code-name">Max Finder</div>
+                    <p class="code-desc">إيجاد أكبر رقم في قائمة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔄</div>
+                    <div class="code-name">String Reverser</div>
+                    <p class="code-desc">عكس أي نص بسهولة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🎯</div>
+                    <div class="code-name">Even Checker</div>
+                    <p class="code-desc">التحقق من الأرقام الزوجية والفردية</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🧹</div>
+                    <div class="code-name">Duplicate Remover</div>
+                    <p class="code-desc">إزالة العناصر المكررة من القوائم</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔤</div>
+                    <div class="code-name">Vowel Counter</div>
+                    <p class="code-desc">عد حروف العلة في النصوص</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="pricing">
+            <h2 class="section-title">💰 السعر</h2>
+            <div class="price-box">
+                <p class="price-per">كل كود مقابل</p>
+                <div class="price-amount">999 ⭐</div>
+                <p class="price-per">نجمة تيليجرام فقط!</p>
+            </div>
+            <a href="https://t.me/WinterLand_bot" class="cta-button">
+                اشترِ الآن
+            </a>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 متجر أكواد Python | جميع الحقوق محفوظة</p>
+            <p style="margin-top: 10px;">صُنع بـ ❤️ للمبرمجين العرب</p>
+        </footer>
     </div>
 
     <!-- Auto Refresh Indicator -->
     <div class="refresh-indicator">
         <span class="refresh-dot"></span>
-        تحديث تلقائي كل 30 ثانية
+        تحديث تلقائي كل 60 ثانية
     </div>
 
     <script>
-        // Update last update time
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('lastUpdate').textContent = 
-                'آخر تحديث: ' + now.toLocaleString('ar-EG');
+        // Create animated stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.textContent = '⭐';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
         }
-        
-        updateTime();
 
-        // Auto refresh every 30 seconds
-        setInterval(() => {
+        // Add smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Animate cards on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.code-card, .feature-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Auto refresh every 60 seconds
+        setTimeout(() => {
             location.reload();
-        }, 30000);
+        }, 60000);
     </script>
 </body>
 </html>
@@ -458,61 +748,17 @@ HTML_TEMPLATE = """
 # ============================================
 
 @app.route('/')
-def dashboard():
-    """Main dashboard page"""
+def main_page():
+    """Main page - Beautiful landing with real statistics"""
     stats = get_stats()
-    
-    if not stats:
-        return """
-        <html dir="rtl">
-        <body style="font-family: Arial; text-align: center; padding: 50px;">
-            <h1>❌ خطأ في الاتصال بقاعدة البيانات</h1>
-            <p>تأكد من تشغيل البوت وإعداد قاعدة البيانات بشكل صحيح</p>
-        </body>
-        </html>
-        """, 500
-    
     return render_template_string(HTML_TEMPLATE, stats=stats)
 
 
 @app.route('/api/stats')
 def api_stats():
-    """API endpoint for stats"""
+    """API endpoint for stats (JSON)"""
     stats = get_stats()
-    
-    if not stats:
-        return jsonify({"error": "Database connection failed"}), 500
-    
-    return jsonify({
-        "total_users": stats["total_users"],
-        "total_purchases": stats["total_purchases"],
-        "total_revenue": stats["total_revenue"],
-        "users_today": stats["users_today"],
-        "purchases_today": stats["purchases_today"],
-        "revenue_today": stats["revenue_today"]
-    })
-
-
-@app.route('/api/users')
-def api_users():
-    """API endpoint for all users"""
-    users = get_all_users()
-    
-    if not users:
-        return jsonify([]), 200
-    
-    users_list = []
-    for user in users:
-        users_list.append({
-            "user_id": user["user_id"],
-            "username": user["username"],
-            "first_name": user["first_name"],
-            "last_name": user["last_name"],
-            "join_date": user["join_date"].isoformat() if user["join_date"] else None,
-            "total_purchases": user["total_purchases"]
-        })
-    
-    return jsonify(users_list)
+    return jsonify(stats)
 
 
 @app.route('/health')
@@ -530,10 +776,11 @@ def health_check():
 
 if __name__ == '__main__':
     print("=" * 50)
-    print("🌐 جاري تشغيل لوحة التحكم...")
+    print("🌐 جاري تشغيل الموقع...")
     print("=" * 50)
-    print("📊 الرابط: http://localhost:5000")
-    print("🔄 التحديث التلقائي: كل 30 ثانية")
+    print("✨ التصميم: صفحة تسويق جميلة")
+    print("📊 البيانات: حقيقية من قاعدة البيانات")
+    print("🔄 التحديث: تلقائي كل 60 ثانية")
     print("=" * 50)
     
     # Run Flask app
