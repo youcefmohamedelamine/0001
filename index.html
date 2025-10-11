@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕊️ بوت تربية الحمام - Telegram Stars</title>
+    <title>متجر أكواد Python - بوت تيليجرام</title>
     <style>
         * {
             margin: 0;
@@ -15,155 +15,228 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: #fff;
+            color: #333;
             overflow-x: hidden;
-        }
-
-        .stars {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            position: relative;
-            z-index: 2;
         }
 
-        /* User Dashboard at Top */
-        .user-dashboard {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 40px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            animation: fadeInDown 1s ease;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .user-avatar {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5em;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-
-        .user-details h2 {
-            font-size: 2em;
-            margin-bottom: 5px;
-        }
-
-        .user-details p {
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .stat-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .stat-value {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
+        /* Header */
         header {
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px 40px;
+            color: white;
             animation: fadeInDown 1s ease;
         }
 
         .logo {
-            font-size: 100px;
-            animation: float 3s ease-in-out infinite;
-            display: inline-block;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
         }
 
         h1 {
-            font-size: 2.5em;
-            margin: 20px 0;
+            font-size: 3rem;
+            margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            animation: fadeInUp 1s ease 0.2s backwards;
         }
 
         .subtitle {
-            font-size: 1.3em;
+            font-size: 1.3rem;
             opacity: 0.9;
             margin-bottom: 30px;
-            animation: fadeInUp 1s ease 0.4s backwards;
         }
 
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 18px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        /* Features Section */
+        .features {
+            background: white;
+            border-radius: 30px;
+            padding: 60px 40px;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Codes Section */
+        .codes-section {
+            background: white;
+            border-radius: 30px;
+            padding: 60px 40px;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .codes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .code-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transition: all 0.5s ease;
+        }
+
+        .code-card:hover::before {
+            transform: translate(-25%, -25%);
+        }
+
+        .code-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .code-emoji {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .code-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .code-desc {
+            opacity: 0.9;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .price-tag {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            gap: 8px;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .price-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 500px;
+            margin: 30px auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .price-amount {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .price-per {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        /* Animations */
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -186,383 +259,232 @@
             }
         }
 
-        .cta-button {
-            display: inline-block;
-            padding: 20px 50px;
-            font-size: 1.3em;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            animation: pulse 2s infinite, fadeInUp 1s ease 0.6s backwards;
-            font-weight: bold;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4); }
-            50% { box-shadow: 0 10px 50px rgba(245, 87, 108, 0.7); }
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin: 60px 0;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: fadeInUp 1s ease backwards;
-        }
-
-        .feature-card:nth-child(1) { animation-delay: 0.8s; }
-        .feature-card:nth-child(2) { animation-delay: 1s; }
-        .feature-card:nth-child(3) { animation-delay: 1.2s; }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-
-        .feature-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            display: inline-block;
-            animation: bounce 2s infinite;
-        }
-
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-20px); }
         }
 
-        .feature-card h3 {
-            font-size: 1.8em;
-            margin-bottom: 15px;
-        }
-
-        .feature-card p {
-            font-size: 1.1em;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-
-        .price-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 50px;
-            text-align: center;
-            margin: 60px 0;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            animation: fadeInUp 1s ease 1.4s backwards;
-        }
-
-        .price {
-            font-size: 4em;
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-            margin: 20px 0;
-        }
-
-        .price-icon {
-            font-size: 3em;
-        }
-
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            margin-top: auto;
-            opacity: 0.8;
-            animation: fadeInUp 1s ease 1.6s backwards;
-        }
-
-        .pigeons-flying {
+        /* Stars Animation */
+        .stars {
             position: fixed;
-            font-size: 2em;
-            animation: fly 15s linear infinite;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
-            z-index: 0;
+            z-index: -1;
         }
 
-        @keyframes fly {
-            0% {
-                left: -100px;
-                top: 20%;
-            }
-            100% {
-                left: calc(100% + 100px);
-                top: 40%;
-            }
+        .star {
+            position: absolute;
+            color: gold;
+            font-size: 20px;
+            animation: twinkle 3s infinite;
         }
 
-        .login-prompt {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
 
-        .login-prompt h3 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
+            h1 { font-size: 2rem; }
+            .subtitle { font-size: 1rem; }
+            .section-title { font-size: 1.8rem; }
+            .price-amount { font-size: 3rem; }
+            .codes-grid, .features-grid {
+                grid-template-columns: 1fr;
             }
-            
-            .subtitle {
-                font-size: 1.2em;
-            }
-            
-            .logo {
-                font-size: 80px;
-            }
-            
-            .cta-button {
-                padding: 15px 35px;
-                font-size: 1.1em;
-            }
-            
-            .price {
-                font-size: 2.5em;
-            }
+        }
 
-            .user-info {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .user-avatar {
-                width: 60px;
-                height: 60px;
-                font-size: 2em;
-            }
-
-            .user-details h2 {
-                font-size: 1.5em;
-            }
-
-            .stat-value {
-                font-size: 2em;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+        /* Telegram Icon */
+        .telegram-icon {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            vertical-align: middle;
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
+    <!-- Animated Stars Background -->
     <div class="stars" id="stars"></div>
-    <div class="pigeons-flying">🕊️</div>
 
     <div class="container">
-        <!-- User Dashboard -->
-        <div class="user-dashboard" id="userDashboard">
-            <div class="login-prompt" id="loginPrompt">
-                <h3>🔐 قم بتسجيل الدخول</h3>
-                <p>استخدم البوت على تلغرام لعرض إحصائياتك هنا</p>
-                <a href="https://t.me/ImpossiblePay_bot" class="cta-button" style="margin-top: 20px; font-size: 1.1em; padding: 15px 35px;">
-                    افتح البوت 🚀
-                </a>
-            </div>
-
-            <div id="userStats" style="display: none;">
-                <div class="user-info">
-                    <div class="user-avatar">👤</div>
-                    <div class="user-details">
-                        <h2 id="userName">اسم المستخدم</h2>
-                        <p id="userUsername">@username</p>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-icon">🕊️</span>
-                        <div class="stat-value" id="userPigeons">0</div>
-                        <div class="stat-label">حماماتي</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <span class="stat-icon">👥</span>
-                        <div class="stat-value" id="totalUsers">0</div>
-                        <div class="stat-label">إجمالي المستخدمين</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <span class="stat-icon">🌍</span>
-                        <div class="stat-value" id="totalPigeons">0</div>
-                        <div class="stat-label">إجمالي الحمام</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <span class="stat-icon">⭐</span>
-                        <div class="stat-value" id="totalStars">0</div>
-                        <div class="stat-label">نجوم محصلة</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- Header -->
         <header>
-            <div class="logo">🕊️</div>
-            <h1>بوت تربية الحمام</h1>
-            <p class="subtitle">اشترِ وربِّ حمامك الخاص في تلغرام!</p>
+            <div class="logo">🐍</div>
+            <h1>متجر أكواد Python</h1>
+            <p class="subtitle">اشترِ أكواد برمجية جاهزة عبر بوت تيليجرام ⭐</p>
             <a href="https://t.me/YOUR_BOT_USERNAME" class="cta-button">
-                ابدأ الآن على تلغرام 🚀
+                ابدأ الآن على تيليجرام
+                <svg class="telegram-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                </svg>
             </a>
         </header>
 
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">⭐</div>
-                <h3>ادفع بالنجوم</h3>
-                <p>اشترِ حمامة واحدة مقابل 1000 نجمة تلغرام فقط</p>
+        <!-- Features Section -->
+        <section class="features">
+            <h2 class="section-title">✨ لماذا تختارنا؟</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">سريع وسهل</h3>
+                    <p class="feature-desc">احصل على الكود فوراً بعد الدفع مباشرة</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">آمن 100%</h3>
+                    <p class="feature-desc">الدفع عبر نظام نجوم تيليجرام الآمن</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💎</div>
+                    <h3 class="feature-title">جودة عالية</h3>
+                    <p class="feature-desc">أكواد مختبرة وجاهزة للاستخدام</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">داخل تيليجرام</h3>
+                    <p class="feature-desc">لا حاجة لتطبيقات خارجية</p>
+                </div>
             </div>
+        </section>
 
-            <div class="feature-card">
-                <div class="feature-icon">🏆</div>
-                <h3>اجمع حمامك</h3>
-                <p>قم ببناء مجموعتك الخاصة من الحمام الجميل</p>
+        <!-- Codes Section -->
+        <section class="codes-section">
+            <h2 class="section-title">🛍️ الأكواد المتاحة</h2>
+            <div class="codes-grid">
+                <div class="code-card">
+                    <div class="code-emoji">🌡️</div>
+                    <div class="code-name">Temperature Converter</div>
+                    <p class="code-desc">تحويل بين درجات الحرارة المئوية والفهرنهايت</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔐</div>
+                    <div class="code-name">Password Generator</div>
+                    <p class="code-desc">توليد كلمات مرور عشوائية وآمنة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">📁</div>
+                    <div class="code-name">File Lister</div>
+                    <p class="code-desc">عرض جميع الملفات في مجلد معين</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">📝</div>
+                    <div class="code-name">Word Counter</div>
+                    <p class="code-desc">حساب عدد الكلمات في أي نص</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">➕</div>
+                    <div class="code-name">List Summer</div>
+                    <p class="code-desc">جمع جميع الأرقام في قائمة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔢</div>
+                    <div class="code-name">Max Finder</div>
+                    <p class="code-desc">إيجاد أكبر رقم في قائمة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔄</div>
+                    <div class="code-name">String Reverser</div>
+                    <p class="code-desc">عكس أي نص بسهولة</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🎯</div>
+                    <div class="code-name">Even Checker</div>
+                    <p class="code-desc">التحقق من الأرقام الزوجية والفردية</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🧹</div>
+                    <div class="code-name">Duplicate Remover</div>
+                    <p class="code-desc">إزالة العناصر المكررة من القوائم</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
+
+                <div class="code-card">
+                    <div class="code-emoji">🔤</div>
+                    <div class="code-name">Vowel Counter</div>
+                    <p class="code-desc">عد حروف العلة في النصوص</p>
+                    <div class="price-tag">999 ⭐</div>
+                </div>
             </div>
+        </section>
 
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>تتبع إحصائياتك</h3>
-                <p>راقب عدد الحمام الذي تمتلكه في أي وقت</p>
+        <!-- Pricing Section -->
+        <section class="pricing">
+            <h2 class="section-title">💰 السعر</h2>
+            <div class="price-box">
+                <p class="price-per">كل كود مقابل</p>
+                <div class="price-amount">999 ⭐</div>
+                <p class="price-per">نجمة تيليجرام فقط!</p>
             </div>
-        </div>
+            <a href="https://t.me/YOUR_BOT_USERNAME" class="cta-button">
+                اشترِ الآن
+            </a>
+        </section>
 
-        <div class="price-section">
-            <h2>السعر البسيط</h2>
-            <div class="price">
-                <span class="price-icon">⭐</span> 1000
-            </div>
-            <p style="font-size: 1.3em;">نجمة واحدة = حمامة واحدة</p>
-        </div>
-
+        <!-- Footer -->
         <footer>
-            <p>© 2025 Pigeon Bot - جميع الحقوق محفوظة</p>
-            <p style="margin-top: 10px;">مدعوم بـ Telegram Stars ⭐</p>
+            <p>© 2025 متجر أكواد Python | جميع الحقوق محفوظة</p>
+            <p style="margin-top: 10px;">صُنع بـ ❤️ للمبرمجين العرب</p>
         </footer>
     </div>
 
     <script>
-        // Create stars
+        // Create animated stars
         const starsContainer = document.getElementById('stars');
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 50; i++) {
             const star = document.createElement('div');
             star.className = 'star';
+            star.textContent = '⭐';
             star.style.left = Math.random() * 100 + '%';
             star.style.top = Math.random() * 100 + '%';
             star.style.animationDelay = Math.random() * 3 + 's';
             starsContainer.appendChild(star);
         }
 
-        // Add multiple flying pigeons
-        for (let i = 0; i < 3; i++) {
-            const pigeon = document.createElement('div');
-            pigeon.className = 'pigeons-flying';
-            pigeon.textContent = '🕊️';
-            pigeon.style.animationDelay = (i * 5) + 's';
-            pigeon.style.top = (20 + i * 20) + '%';
-            document.body.appendChild(pigeon);
-        }
+        // Add smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
 
-        // API endpoint - replace with your actual API URL
-        const API_URL = 'https://your-api-domain.com';  // Change this to your API URL
-        
-        // Load user data from API
-        function loadUserData() {
-            // Get data from URL parameters
-            const params = new URLSearchParams(window.location.search);
-            const userId = params.get('user_id');
-            
-            if (userId) {
-                // Fetch user data from API
-                fetch(`${API_URL}/api/user/${userId}`)
-                    .then(res => {
-                        if (!res.ok) throw new Error('Failed to fetch user data');
-                        return res.json();
-                    })
-                    .then(data => {
-                        displayUserData(data);
-                    })
-                    .catch(err => {
-                        console.error('Error loading user data:', err);
-                        // Show demo data if API fails (for testing)
-                        showDemoData();
-                    });
-            } else {
-                // Load global stats if no user_id
-                loadGlobalStats();
-            }
-        }
-        
-        // Load global statistics
-        function loadGlobalStats() {
-            fetch(`${API_URL}/api/stats`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('totalUsers').textContent = data.totalUsers.toLocaleString('ar-EG');
-                    document.getElementById('totalPigeons').textContent = data.totalPigeons.toLocaleString('ar-EG');
-                    document.getElementById('totalStars').textContent = data.totalStars.toLocaleString('ar-EG');
-                })
-                .catch(err => {
-                    console.error('Error loading global stats:', err);
-                });
-        }
-        
-        // Show demo data for testing
-        function showDemoData() {
-            const demoData = {
-                name: 'محمد أحمد',
-                username: 'mohammed_pigeon',
-                pigeons: 15,
-                totalUsers: 1247,
-                totalPigeons: 8934,
-                totalStars: 8934000
-            };
-            displayUserData(demoData);
-        }
+        // Animate cards on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
+                }
+            });
+        }, { threshold: 0.1 });
 
-        function displayUserData(data) {
-            document.getElementById('loginPrompt').style.display = 'none';
-            document.getElementById('userStats').style.display = 'block';
-            
-            document.getElementById('userName').textContent = data.name;
-            document.getElementById('userUsername').textContent = '@' + data.username;
-            document.getElementById('userPigeons').textContent = data.pigeons;
-            document.getElementById('totalUsers').textContent = data.totalUsers.toLocaleString('ar-EG');
-            document.getElementById('totalPigeons').textContent = data.totalPigeons.toLocaleString('ar-EG');
-            document.getElementById('totalStars').textContent = data.totalStars.toLocaleString('ar-EG');
-        }
-
-        // Load user data on page load
-        loadUserData();
-
-        // Update stats every 30 seconds
-        setInterval(loadUserData, 30000);
+        document.querySelectorAll('.code-card, .feature-card').forEach(card => {
+            observer.observe(card);
+        });
     </script>
 </body>
 </html>
