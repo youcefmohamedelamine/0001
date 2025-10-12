@@ -258,8 +258,8 @@ class StatsManager:
             position: fixed;
             right: 0;
             top: 0;
-            width: 80px;
-            height: 100vh;
+            width: 100px;
+            height: 80vh;
             background: rgba(26, 26, 26, 0.8);
             backdrop-filter: blur(20px);
             border-left: 2px solid var(--primary);
@@ -323,7 +323,8 @@ class StatsManager:
         /* Main Content */
         .main-content {
             margin-left: 0;
-            margin-right: 100px;
+            margin-right: 0;
+            margin-bottom: 100px;
             padding: 40px;
         }
         
@@ -367,7 +368,7 @@ class StatsManager:
             grid-column: span 2;
             grid-row: span 2;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             justify-content: center;
             align-items: center;
             text-align: center;
