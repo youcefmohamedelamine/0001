@@ -829,7 +829,12 @@ class StatsManager:
             .bento-grid { grid-template-columns: 1fr; }
             .bento-large, .bento-wide { grid-column: span 1; grid-row: span 1; }
             .products-grid { grid-template-columns: 1fr; }
-            .leaderboard-row { grid-template-columns: 60px 1fr 100px; }
+            .leaderboard-row { 
+                grid-template-columns: 50px 1fr 80px; 
+                padding: 10px;
+                font-size: 0.85rem;
+}
+            
             .section-title-modern { font-size: 2rem; }
         }
     </style>
