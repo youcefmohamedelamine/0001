@@ -810,7 +810,20 @@ class StatsManager:
         }
         
         @media (max-width: 768px) {
-            .sidebar { display: none; }
+            .sidebar { 
+                padding: 0 10px;
+                height: 70px;
+                gap: 10px;
+            }
+            .logo-mini {
+                font-size: 1.8rem;
+                margin-right: 10px;
+            }
+            .nav-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.4rem;
+            }
             .main-content { margin-right: 0; padding: 20px; }
             .hero-title { font-size: 2.5rem; }
             .bento-grid { grid-template-columns: 1fr; }
