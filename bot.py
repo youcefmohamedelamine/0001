@@ -259,16 +259,16 @@ class StatsManager:
             right: 0;
             bottom: 0;
             left: 0;
-            width: 100px;
-            height: 80vh;
+            width: 100%;
+            height: 80px;
             background: rgba(26, 26, 26, 0.8);
             backdrop-filter: blur(20px);
-            border-left: 2px solid var(--primary);
+            border-top: 2px solid var(--primary);
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 30px;
             padding: 0 30px;
             z-index: 1000;
         }
