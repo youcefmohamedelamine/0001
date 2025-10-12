@@ -257,23 +257,27 @@ class StatsManager:
         .sidebar {
             position: fixed;
             right: 0;
-            top: 0;
+            bottom: 0;
+            left: 0;
             width: 100px;
             height: 80vh;
             background: rgba(26, 26, 26, 0.8);
             backdrop-filter: blur(20px);
             border-left: 2px solid var(--primary);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            padding: 30px 0;
+            justify-content: center;
+            gap: 20px;
+            padding: 0 30px;
             z-index: 1000;
         }
         
         .logo-mini {
             font-size: 2.5rem;
-            margin-bottom: 50px;
-            animation: float 3s ease-in-out infinite;
+            margin-bottom: 0;
+            margin-right: 30px;
+            animation: float 3s ease-in-out infinite;  
         }
         
         @keyframes float {
@@ -284,7 +288,7 @@ class StatsManager:
         .nav-icon {
             width: 50px;
             height: 50px;
-            margin: 15px 0;
+            margin:  0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -304,7 +308,9 @@ class StatsManager:
         .nav-icon::before {
             content: attr(data-tooltip);
             position: absolute;
-            left: -120px;
+            bottom: 70px;
+            left: 50px;
+            transform: translateX(-50%);
             background: var(--primary);
             color: var(--darker);
             padding: 8px 15px;
