@@ -107,7 +107,56 @@ class StatsManager:
             if conn:
                 conn.close()
             return self._empty_stats()
+
+
+    def get_leaderboard(self, limit=100):
+        """جلب أفضل 100 مستخدم"""
+        conn = self._get_connection()
+        if not conn:
+            return []
     
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("""
+                SELECT 
+                    u.user_id,
+                    u.first_name,
+                    u.last_name,
+                    u.username,
+                    u.join_date,
+                    COUNT(p.id) as purchase_count,
+                    SUM(p.price) as total_spent
+                FROM users u
+                LEFT JOIN purchases p ON u.user_id = p.user_id
+                GROUP BY u.user_id, u.first_name, u.last_name, u.username, u.join_date
+                ORDER BY purchase_count DESC, u.join_date ASC
+                LIMIT %s
+            """, (limit,))
+        
+            users = cur.fetchall()
+            cur.close()
+            conn.close()
+        
+            leaderboard = []
+            for idx, user in enumerate(users, 1):
+                name = f"{user['first_name']} {user['last_name']}".strip()
+                if not name:
+                    name = user['username'] or f"User_{user['user_id']}"
+            
+                leaderboard.append({
+                    "rank": idx,
+                    "name": name,
+                    "purchases": user['purchase_count'] or 0,
+                    "join_date": user['join_date'].strftime('%Y-%m-%d') if user['join_date'] else 'Unknown'
+                })
+        
+            return leaderboard
+        except Exception as e:
+            print(f"❌ خطأ في جلب الليدربورد: {e}")
+            if conn:
+                conn.close()
+            return []
+
     def _empty_stats(self):
         """إرجاع إحصائيات فارغة في حالة الخطأ"""
         return {
@@ -143,7 +192,11 @@ class StatsManager:
     
     def _setup_routes(self):
         """إعداد مسارات Flask"""
-        
+
+        @self.flask_app.route('/api/leaderboard')
+        def api_leaderboard():
+            leaderboard = self.get_leaderboard(100)
+            return jsonify(leaderboard)
         @self.flask_app.route('/')
         def main_page():
             stats = self.get_stats()
@@ -985,25 +1038,6 @@ class StatsManager:
     </div>
     
     <script>
-        // Mock Data
-        const mockUsers = [];
-        const arabicNames = ['أحمد', 'محمد', 'علي', 'حسن', 'يوسف', 'عمر', 'خالد', 'سعيد', 'فاطمة', 'زينب', 'مريم', 'عائشة', 'سارة', 'نور'];
-        
-        // Generate 100 users
-        for (let i = 0; i < 100; i++) {
-            const name = arabicNames[Math.floor(Math.random() * arabicNames.length)] + ' ' + String.fromCharCode(65 + Math.floor(Math.random() * 26));
-            const purchases = Math.floor(Math.random() * 20);
-            const joinDate = new Date();
-            joinDate.setDate(joinDate.getDate() - i);
-            
-            mockUsers.push({
-                id: i + 1,
-                name: name,
-                purchases: purchases,
-                joinDate: joinDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
-            });
-        }
-        
         // Sort by purchases (if no purchases, show first 100 joined)
         mockUsers.sort((a, b) => {
             if (b.purchases !== a.purchases) {
@@ -1032,56 +1066,63 @@ class StatsManager:
         }
         
         // Load Leaderboard
+        // Load Leaderboard
         function loadLeaderboard() {
             const content = document.getElementById('leaderboard-content');
             const emptyState = document.getElementById('empty-state');
-            
-            // Check if we have users
-            const hasData = mockUsers.length > 0;
-            
-            if (hasData) {
-                content.style.display = 'block';
-                emptyState.style.display = 'none';
-                content.innerHTML = '';
+    
+            // جلب البيانات من API
+            fetch('/api/leaderboard')
+                .then(response => response.json())
+                .then(users => {
+                    if (users.length > 0) {
+                        content.style.display = 'block';
+                        emptyState.style.display = 'none';
+                        content.innerHTML = '';
                 
-                mockUsers.forEach((user, index) => {
-                    const rank = index + 1;
-                    let rankDisplay = '#' + rank;
-                    let rankClass = '';
+                        users.forEach((user) => {
+                            const rank = user.rank;
+                            let rankDisplay = '#' + rank;
+                            let rankClass = '';
                     
-                    if (rank === 1) {
-                        rankDisplay = '🥇';
-                        rankClass = 'rank-1';
-                    } else if (rank === 2) {
-                        rankDisplay = '🥈';
-                        rankClass = 'rank-2';
-                    } else if (rank === 3) {
-                        rankDisplay = '🥉';
-                        rankClass = 'rank-3';
+                            if (rank === 1) {
+                                rankDisplay = '🥇';
+                                rankClass = 'rank-1';
+                            } else if (rank === 2) {
+                                rankDisplay = '🥈';
+                                rankClass = 'rank-2';
+                            } else if (rank === 3) {
+                                rankDisplay = '🥉';
+                                rankClass = 'rank-3';
+                            }
+                    
+                            const row = document.createElement('div');
+                            row.className = 'leaderboard-row';
+                            row.innerHTML = `
+                                <div class="rank-badge ${rankClass}">${rankDisplay}</div>
+                                <div class="player-info">
+                                <div class="player-avatar">${user.name.charAt(0)}</div>
+                                    <div class="player-details">
+                                        <h3>${user.name}</h3>
+                                        <p>انضم في: ${user.join_date}</p>
+                                    </div>
+                                </div>
+                                <div class="player-stats">
+                                    <div class="stat-number">${user.purchases}</div>
+                                    <div class="stat-text">${user.purchases === 0 ? 'لم يشتري بعد' : user.purchases === 1 ? 'عملية شراء' : 'عملية شراء'}</div>
+                                </div>
+                            `;
+                            content.appendChild(row);
+                        });
+                    } else {
+                        content.style.display = 'none';
+                        emptyState.style.display = 'block';
                     }
-                    
-                    const row = document.createElement('div');
-                    row.className = 'leaderboard-row';
-                    row.innerHTML = `
-                        <div class="rank-badge ${rankClass}">${rankDisplay}</div>
-                        <div class="player-info">
-                            <div class="player-avatar">${user.name.charAt(0)}</div>
-                            <div class="player-details">
-                                <h3>${user.name}</h3>
-                                <p>انضم في: ${user.joinDate}</p>
-                            </div>
-                        </div>
-                        <div class="player-stats">
-                            <div class="stat-number">${user.purchases}</div>
-                            <div class="stat-text">${user.purchases === 0 ? 'لم يشتري بعد' : user.purchases === 1 ? 'عملية شراء' : 'عملية شراء'}</div>
-                        </div>
-                    `;
-                    content.appendChild(row);
+                })
+                .catch(error => {
+                    console.error('Error loading leaderboard:', error);
+                    emptyState.style.display = 'block';
                 });
-            } else {
-                content.style.display = 'none';
-                emptyState.style.display = 'block';
-            }
         }
         
         // Intersection Observer for scroll animations
