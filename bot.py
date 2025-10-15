@@ -1091,7 +1091,7 @@ class StatsManager:
 </body>
 </html>
         """
-BOT_TOKEN = "7580086418:AAGi6mVgzONAl1koEbXfk13eDYTzCeMdDWg"
+BOT_TOKEN = ""
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 PRICE_PER_CODE = 999
 DATABASE_URL = os.getenv("DATABASE_URL")
